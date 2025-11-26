@@ -35,16 +35,15 @@ class AccountResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListAccounts::route('/'),
+            'index'  => ListAccounts::route('/'),
             'create' => CreateAccount::route('/create'),
-            'edit' => EditAccount::route('/{record}/edit'),
+            'edit'   => EditAccount::route('/{record}/edit'),
         ];
     }
 

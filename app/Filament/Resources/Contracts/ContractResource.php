@@ -35,16 +35,15 @@ class ContractResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListContracts::route('/'),
+            'index'  => ListContracts::route('/'),
             'create' => CreateContract::route('/create'),
-            'edit' => EditContract::route('/{record}/edit'),
+            'edit'   => EditContract::route('/{record}/edit'),
         ];
     }
 

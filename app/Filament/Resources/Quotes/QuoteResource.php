@@ -35,16 +35,15 @@ class QuoteResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListQuotes::route('/'),
+            'index'  => ListQuotes::route('/'),
             'create' => CreateQuote::route('/create'),
-            'edit' => EditQuote::route('/{record}/edit'),
+            'edit'   => EditQuote::route('/{record}/edit'),
         ];
     }
 

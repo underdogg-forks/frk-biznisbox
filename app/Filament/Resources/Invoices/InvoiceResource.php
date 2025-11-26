@@ -35,16 +35,15 @@ class InvoiceResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListInvoices::route('/'),
+            'index'  => ListInvoices::route('/'),
             'create' => CreateInvoice::route('/create'),
-            'edit' => EditInvoice::route('/{record}/edit'),
+            'edit'   => EditInvoice::route('/{record}/edit'),
         ];
     }
 

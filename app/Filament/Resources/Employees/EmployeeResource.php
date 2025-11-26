@@ -35,16 +35,15 @@ class EmployeeResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListEmployees::route('/'),
+            'index'  => ListEmployees::route('/'),
             'create' => CreateEmployee::route('/create'),
-            'edit' => EditEmployee::route('/{record}/edit'),
+            'edit'   => EditEmployee::route('/{record}/edit'),
         ];
     }
 

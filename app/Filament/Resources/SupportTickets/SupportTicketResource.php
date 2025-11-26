@@ -35,16 +35,15 @@ class SupportTicketResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListSupportTickets::route('/'),
+            'index'  => ListSupportTickets::route('/'),
             'create' => CreateSupportTicket::route('/create'),
-            'edit' => EditSupportTicket::route('/{record}/edit'),
+            'edit'   => EditSupportTicket::route('/{record}/edit'),
         ];
     }
 

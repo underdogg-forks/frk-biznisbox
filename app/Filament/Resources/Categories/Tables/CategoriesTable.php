@@ -43,7 +43,6 @@ class CategoriesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
             ])
             ->recordActions([
                 EditAction::make(),

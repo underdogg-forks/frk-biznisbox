@@ -35,16 +35,15 @@ class OnlinePaymentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListOnlinePayments::route('/'),
+            'index'  => ListOnlinePayments::route('/'),
             'create' => CreateOnlinePayment::route('/create'),
-            'edit' => EditOnlinePayment::route('/{record}/edit'),
+            'edit'   => EditOnlinePayment::route('/{record}/edit'),
         ];
     }
 

@@ -33,16 +33,15 @@ class BillResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListBills::route('/'),
+            'index'  => ListBills::route('/'),
             'create' => CreateBill::route('/create'),
-            'edit' => EditBill::route('/{record}/edit'),
+            'edit'   => EditBill::route('/{record}/edit'),
         ];
     }
 }

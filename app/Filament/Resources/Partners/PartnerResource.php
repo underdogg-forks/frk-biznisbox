@@ -35,16 +35,15 @@ class PartnerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListPartners::route('/'),
+            'index'  => ListPartners::route('/'),
             'create' => CreatePartner::route('/create'),
-            'edit' => EditPartner::route('/{record}/edit'),
+            'edit'   => EditPartner::route('/{record}/edit'),
         ];
     }
 

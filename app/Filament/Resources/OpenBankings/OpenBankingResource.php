@@ -33,16 +33,15 @@ class OpenBankingResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListOpenBankings::route('/'),
+            'index'  => ListOpenBankings::route('/'),
             'create' => CreateOpenBanking::route('/create'),
-            'edit' => EditOpenBanking::route('/{record}/edit'),
+            'edit'   => EditOpenBanking::route('/{record}/edit'),
         ];
     }
 }

@@ -35,16 +35,15 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListProducts::route('/'),
+            'index'  => ListProducts::route('/'),
             'create' => CreateProduct::route('/create'),
-            'edit' => EditProduct::route('/{record}/edit'),
+            'edit'   => EditProduct::route('/{record}/edit'),
         ];
     }
 

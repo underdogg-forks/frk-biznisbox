@@ -35,16 +35,15 @@ class TransactionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListTransactions::route('/'),
+            'index'  => ListTransactions::route('/'),
             'create' => CreateTransaction::route('/create'),
-            'edit' => EditTransaction::route('/{record}/edit'),
+            'edit'   => EditTransaction::route('/{record}/edit'),
         ];
     }
 
