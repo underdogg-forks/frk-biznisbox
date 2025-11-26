@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Services\Client\ContractService;
+use Illuminate\Http\Request;
 
 class ContractController extends Controller
 {
@@ -17,24 +17,26 @@ class ContractController extends Controller
 
     public function getContract(Request $request)
     {
-        $key = $request->key;
+        $key      = $request->key;
         $contract = $this->contractService->getContract($key);
 
-        if (!$contract) {
+        if ( ! $contract) {
             return api_response(null, __('responses.item_not_found'), 404);
         }
+
         return api_response($contract, __('responses.data_retrieved_successfully'), 200);
     }
 
     public function signContract(Request $request)
     {
-        $key = $request->key;
-        $data = $request->all();
+        $key      = $request->key;
+        $data     = $request->all();
         $contract = $this->contractService->signContract($key, $data);
 
-        if (!$contract) {
+        if ( ! $contract) {
             return api_response(null, __('responses.item_not_found'), 404);
         }
+
         return api_response($contract, __('responses.data_retrieved_successfully'), 200);
     }
 }

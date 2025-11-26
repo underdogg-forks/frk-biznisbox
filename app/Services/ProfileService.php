@@ -2,40 +2,41 @@
 
 namespace App\Services;
 
-use PragmaRX\Google2FA\Google2FA;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\Notification;
+use PragmaRX\Google2FA\Google2FA;
 
 class ProfileService
 {
     /**
-     * Change the theme
+     * Change the theme.
      *
      * @param $theme
      */
     public function changeTheme($theme)
     {
-        $user = User::find(auth()->id());
+        $user        = User::find(auth()->id());
         $user->theme = $theme;
         $user->save();
     }
 
     /**
-     * Get the profile
+     * Get the profile.
      *
      * @return mixed
      */
     public function getProfile()
     {
         $user = User::with('sessions', 'roles', 'permissions')->find(auth()->id());
+
         return $user;
     }
 
     /**
-     * Update the profile
+     * Update the profile.
      *
      * @param $data
      */
@@ -45,13 +46,13 @@ class ProfileService
 
         $user->update([
             'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'language' => $data['language'],
+            'last_name'  => $data['last_name'],
+            'language'   => $data['language'],
         ]);
     }
 
     /**
-     * Update the password
+     * Update the password.
      *
      * @param $data
      */
@@ -64,34 +65,35 @@ class ProfileService
     }
 
     /**
-     * Set 2 factor authentication
+     * Set 2 factor authentication.
      *
      * @return array
      */
     public function set2FactorAuth()
     {
-        $user = User::find(auth()->id());
+        $user      = User::find(auth()->id());
         $google2fa = new Google2FA();
-        $secret = $google2fa->generateSecretKey();
+        $secret    = $google2fa->generateSecretKey();
 
         DB::table('2fa')->insert([
-            'id' => Str::uuid(),
+            'id'      => Str::uuid(),
             'user_id' => $user->id,
-            'secret' => $secret,
+            'secret'  => $secret,
         ]);
 
         $url = $google2fa->getQRCodeUrl(settings('company_name'), $user->email, $secret);
 
         return [
             'secret' => $secret,
-            'url' => $url,
+            'url'    => $url,
         ];
     }
 
     /**
-     * Enable 2 factor authentication
+     * Enable 2 factor authentication.
      *
      * @param $data
+     *
      * @return bool
      */
     public function enable2FactorAuth($data)
@@ -99,11 +101,11 @@ class ProfileService
         $user = User::find(auth()->id());
 
         $google2fa = new Google2FA();
-        $secret = DB::table('2fa')
+        $secret    = DB::table('2fa')
             ->where([
                 'user_id' => $user->id,
                 'enabled' => false,
-                'secret' => $data['secret'],
+                'secret'  => $data['secret'],
             ])
             ->first()->secret;
         $valid = $google2fa->verifyKey($secret, $data['code'], 2);
@@ -125,11 +127,12 @@ class ProfileService
 
             return true;
         }
+
         return false;
     }
 
     /**
-     * Disable 2 factor authentication
+     * Disable 2 factor authentication.
      */
     public function disable2FactorAuth()
     {
@@ -143,7 +146,7 @@ class ProfileService
     }
 
     /**
-     * Set the profile picture
+     * Set the profile picture.
      *
      * @param Request $request
      */
@@ -154,7 +157,7 @@ class ProfileService
             if ($user->picture && $user->picture !== $user->id . '.png') {
                 Storage::disk('public')->delete($user->picture);
             }
-            $file = $request->file('picture');
+            $file     = $request->file('picture');
             $filename = $file->hashName();
             $file->storeAs('public', $filename);
             $user->picture = $filename;
@@ -163,7 +166,7 @@ class ProfileService
     }
 
     /**
-     * Delete the profile picture
+     * Delete the profile picture.
      */
     public function deleteProfilePicture()
     {
@@ -180,35 +183,38 @@ class ProfileService
      ****************************************************/
 
     /**
-     * Get all notifications for the current user
+     * Get all notifications for the current user.
      *
      * @return mixed
      */
     public function getCurrentUserNotifications()
     {
         $notification = new Notification();
+
         return $notification->getUserNotifications(auth()->id());
     }
 
     /**
-     * Mark a notification as read
+     * Mark a notification as read.
      *
      * @param $notification_id
      */
     public function markNotificationAsRead($notification_id)
     {
         $notification = Notification::where('id', $notification_id)->where('user_id', auth()->id())->first();
+
         return $notification->markAsRead();
     }
 
     /**
-     * Delete a notification
+     * Delete a notification.
      *
      * @param $notification_id
      */
     public function deleteNotification($notification_id)
     {
         $notification = Notification::where('id', $notification_id)->where('user_id', auth()->id())->first();
+
         return $notification->delete();
     }
 }

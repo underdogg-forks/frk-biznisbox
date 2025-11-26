@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Spatie\Permission\Models\Permission as SpatiePermission;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use OwenIt\Auditing\Contracts\Auditable;
+use Spatie\Permission\Models\Permission as SpatiePermission;
 
 class Permission extends SpatiePermission implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $fillable = ['id', 'name', 'guard_name', 'display_name', 'description'];

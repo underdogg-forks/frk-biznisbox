@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Services\Admin\PermissionRoleService;
+use Illuminate\Http\Request;
 
 class PermissionRoleController extends Controller
 {
@@ -16,89 +16,103 @@ class PermissionRoleController extends Controller
     }
 
     /**
-     * Get all roles
+     * Get all roles.
+     *
      * @return array $roles All roles with permissions
      */
     public function getRoles()
     {
         $roles = $this->permissionRoleService->getRoles();
-        if (!$roles) {
+        if ( ! $roles) {
             return api_response($roles, __('responses.item_not_found'), 404);
         }
+
         return api_response($roles, __('responses.data_retrieved_successfully'), 200);
     }
 
     /**
-     * Get role by id
-     * @param  string  $id id of the role
+     * Get role by id.
+     *
+     * @param string $id id of the role
+     *
      * @return array $role role with permissions
      */
-
     public function getRole($id)
     {
         $role = $this->permissionRoleService->getRole($id);
-        if (!$role) {
+        if ( ! $role) {
             return api_response($role, __('responses.item_not_found_with_id'), 404);
         }
+
         return api_response($role, __('responses.data_retrieved_successfully'), 200);
     }
 
     /**
-     * Create a new role
-     * @param  object  $request data from the form (name and permissions)
+     * Create a new role.
+     *
+     * @param object $request data from the form (name and permissions)
+     *
      * @return array $role role with permissions
      */
-
     public function createRole(Request $request)
     {
         $data = $request->all();
         $role = $this->permissionRoleService->createRole($data);
-        if (!$role) {
+        if ( ! $role) {
             return api_response($role, __('responses.item_not_created'), 400);
         }
+
         return api_response($role, __('responses.item_created_successfully'), 200);
     }
 
     /**
-     * Update a role
-     * @param  object $request data from the form (name and permissions)
-     * @param  string  $id id of the role
+     * Update a role.
+     *
+     * @param object $request data from the form (name and permissions)
+     * @param string $id      id of the role
+     *
      * @return array $role role with permissions
      */
     public function updateRole(Request $request, $id)
     {
         $data = $request->all();
         $role = $this->permissionRoleService->updateRole($data, $id);
-        if (!$role) {
+        if ( ! $role) {
             return api_response($role, __('responses.item_not_found'), 404);
         }
+
         return api_response($role, __('responses.item_updated_successfully'), 200);
     }
 
     /**
-     * Delete a role
-     * @param  string  $id id of the role
+     * Delete a role.
+     *
+     * @param string $id id of the role
+     *
      * @return array $role role with permissions
      */
     public function deleteRole($id)
     {
         $role = $this->permissionRoleService->deleteRole($id);
-        if (!$role) {
+        if ( ! $role) {
             return api_response($role, __('responses.item_not_found'), 404);
         }
+
         return api_response($role, __('responses.item_deleted_successfully'), 200);
     }
 
     /**
-     * Get all permissions
+     * Get all permissions.
+     *
      * @return array $permissions All permissions
      */
     public function getPermissions()
     {
         $permissions = $this->permissionRoleService->getPermissions();
-        if (!$permissions) {
+        if ( ! $permissions) {
             return api_response($permissions, __('responses.item_not_found'), 404);
         }
+
         return api_response($permissions, __('responses.data_retrieved_successfully'), 200);
     }
 }

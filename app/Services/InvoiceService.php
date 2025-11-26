@@ -3,14 +3,15 @@
 namespace App\Services;
 
 use App\Models\Invoice;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\Transaction;
 use App\Models\PartnerContact;
+use App\Models\Transaction;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 
 class InvoiceService
 {
     private $invoiceModel;
+
     public function __construct()
     {
         $this->invoiceModel = new Invoice();
@@ -19,48 +20,55 @@ class InvoiceService
     public function getInvoices()
     {
         $invoices = $this->invoiceModel->getInvoices();
+
         return $invoices;
     }
 
     public function getInvoice($id)
     {
         $invoice = $this->invoiceModel->getInvoice($id);
+
         return $invoice;
     }
 
     public function createInvoice($data)
     {
         $invoice = $this->invoiceModel->createInvoice($data);
+
         return $invoice;
     }
 
     public function updateInvoice($id, $data)
     {
         $invoice = $this->invoiceModel->updateInvoice($id, $data);
+
         return $invoice;
     }
 
     public function deleteInvoice($id)
     {
         $invoice = $this->invoiceModel->deleteInvoice($id);
+
         return $invoice;
     }
 
     public function getInvoiceNumber()
     {
         $invoice = $this->invoiceModel->getInvoiceNumber();
+
         return $invoice;
     }
 
     public function shareInvoice($id)
     {
         $invoice = $this->invoiceModel->shareInvoice($id);
+
         return $invoice;
     }
 
     public function getInvoicePdf($id, $type = 'stream')
     {
-        $invoice = $this->getInvoice($id);
+        $invoice  = $this->getInvoice($id);
         $settings = settings([
             'company_name',
             'company_address',
@@ -81,11 +89,12 @@ class InvoiceService
         }
         if ($type == 'download') {
             createActivityLog('DownloadInvoice', $invoice->id, 'App\Models\Invoice', 'Invoice');
+
             return $pdf->download('Invoice ' . $invoice->number . '.pdf');
-        } else {
-            createActivityLog('ViewInvoice', $invoice->id, 'App\Models\Invoice', 'Invoice');
-            return $pdf->stream('Invoice ' . $invoice->number . '.pdf');
         }
+        createActivityLog('ViewInvoice', $invoice->id, 'App\Models\Invoice', 'Invoice');
+
+        return $pdf->stream('Invoice ' . $invoice->number . '.pdf');
     }
 
     public function addInvoicePayment($invoice_id, $data)
@@ -93,14 +102,14 @@ class InvoiceService
         $invoice = $this->invoiceModel->find($invoice_id);
 
         $transaction = Transaction::create([
-            'number' => Transaction::getTransactionNumber(),
-            'type' => 'income',
-            'amount' => $data['amount'],
-            'date' => $data['date'] ?? date('Y-m-d'),
-            'invoice_id' => $invoice_id,
-            'customer_id' => $invoice->customer_id,
-            'supplier_id' => $invoice->payer_id,
-            'currency' => $invoice->currency,
+            'number'        => Transaction::getTransactionNumber(),
+            'type'          => 'income',
+            'amount'        => $data['amount'],
+            'date'          => $data['date'] ?? date('Y-m-d'),
+            'invoice_id'    => $invoice_id,
+            'customer_id'   => $invoice->customer_id,
+            'supplier_id'   => $invoice->payer_id,
+            'currency'      => $invoice->currency,
             'currency_rate' => $invoice->currency_rate,
         ]);
 
@@ -131,6 +140,7 @@ class InvoiceService
             incrementLastItemNumber('transaction');
             createActivityLog('addInvoicePayment', $invoice_id, 'App\Models\Invoice', 'Invoice');
             sendWebhookForEvent('invoice:payment_received', $transaction->toArray());
+
             return $transaction;
         }
     }
@@ -138,6 +148,7 @@ class InvoiceService
     public function getInvoicePayments($invoice_id)
     {
         $transactions = Transaction::where('invoice_id', $invoice_id)->get();
+
         return $transactions;
     }
 
@@ -147,35 +158,35 @@ class InvoiceService
 
         if ($contact != null) {
             $url = url(
-                '/client/invoice/' .
-                    $invoice->id .
-                    '?key=' .
-                    generateExternalKey('invoice', $invoice->id, 'system', null, $contact->email, 'email') .
-                    '&lang=' .
-                    app()->getLocale()
+                '/client/invoice/'
+                    . $invoice->id
+                    . '?key='
+                    . generateExternalKey('invoice', $invoice->id, 'system', null, $contact->email, 'email')
+                    . '&lang='
+                    . app()->getLocale()
             );
 
             Mail::to($contact->email)->send(new \App\Mail\Client\InvoiceNotification($invoice, $url, $contact));
+
             return true;
-        } else {
-            $contacts = PartnerContact::where('partner_id', $invoice->customer_id)
-                ->orWhere('partner_id', $invoice->payer_id)
-                ->where('is_primary', true)
-                ->whereNotNull('email')
-                ->get();
+        }
+        $contacts = PartnerContact::where('partner_id', $invoice->customer_id)
+            ->orWhere('partner_id', $invoice->payer_id)
+            ->where('is_primary', true)
+            ->whereNotNull('email')
+            ->get();
 
-            foreach ($contacts as $contact) {
-                $url = $url = url(
-                    '/client/invoice/' .
-                        $invoice->id .
-                        '?key=' .
-                        generateExternalKey('invoice', $invoice->id, 'system', null, $contact->email, 'email') .
-                        '&lang=' .
-                        app()->getLocale()
-                );
+        foreach ($contacts as $contact) {
+            $url = $url = url(
+                '/client/invoice/'
+                    . $invoice->id
+                    . '?key='
+                    . generateExternalKey('invoice', $invoice->id, 'system', null, $contact->email, 'email')
+                    . '&lang='
+                    . app()->getLocale()
+            );
 
-                Mail::to($contact->email)->send(new \App\Mail\Client\InvoiceNotification($invoice, $url, $contact));
-            }
+            Mail::to($contact->email)->send(new \App\Mail\Client\InvoiceNotification($invoice, $url, $contact));
         }
 
         if ($invoice->status != 'paid' && $invoice->status != 'overpaid' && $invoice->status != 'partial' && $invoice->status != 'sent') {
@@ -183,6 +194,7 @@ class InvoiceService
             $invoice->save();
         }
         createActivityLog('sendInvoiceNotification', $invoice_id, 'App\Models\Invoice', 'Invoice');
+
         return true;
     }
 }

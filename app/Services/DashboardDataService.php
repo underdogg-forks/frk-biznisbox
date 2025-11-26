@@ -6,6 +6,35 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardDataService
 {
+    public function returnData($requiredData)
+    {
+        switch ($requiredData) {
+            case 'number_of_customers':
+                return $this->getNumberOfCustomers();
+                break;
+            case 'number_of_suppliers':
+                return $this->getNumberOfSuppliers();
+                break;
+            case 'current_month_income_and_expenses':
+                return $this->getMonthIncomeAndExpenses();
+                break;
+            case 'number_of_employees':
+                return $this->getNumberOfEmployees();
+                break;
+            case 'number_of_unpaid_invoices':
+                return $this->getNumberOfUnpaidInvoices();
+                break;
+            case 'number_of_unpaid_bills':
+                return $this->getNumberOfUnpaidBills();
+                break;
+            case 'current_year_monthly_income_and_expenses':
+                return $this->currentYearMonthlyIncomeAndExpenses();
+                break;
+            default:
+                return;
+        }
+    }
+
     private function getNumberOfCustomers()
     {
         return DB::table('partners')->where('type', 'customer')->orWhere('type', 'both')->count();
@@ -53,15 +82,16 @@ class DashboardDataService
             ->whereMonth('date', $month)
             ->whereYear('date', $year)
             ->sum('amount');
+
         return [
-            'income' => round($currentMonthIncome, 2),
+            'income'  => round($currentMonthIncome, 2),
             'expense' => round($currentMonthExpenses, 2),
         ];
     }
 
     private function currentYearMonthlyIncomeAndExpenses()
     {
-        $currentYear = date('Y');
+        $currentYear   = date('Y');
         $monthlyIncome = DB::table('transactions')
             ->select(DB::raw('SUM(amount) as total_amount'), DB::raw('MONTH(date) as month'))
             ->where('type', 'income')
@@ -76,7 +106,7 @@ class DashboardDataService
             ->get();
 
         $char_data = [
-            'income' => [],
+            'income'  => [],
             'expense' => [],
         ];
 
@@ -86,35 +116,7 @@ class DashboardDataService
         foreach ($monthlyExpenses as $expense) {
             $char_data['expense'][] = round($expense->total_amount, 2);
         }
-        return $char_data;
-    }
 
-    public function returnData($requiredData)
-    {
-        switch ($requiredData) {
-            case 'number_of_customers':
-                return $this->getNumberOfCustomers();
-                break;
-            case 'number_of_suppliers':
-                return $this->getNumberOfSuppliers();
-                break;
-            case 'current_month_income_and_expenses':
-                return $this->getMonthIncomeAndExpenses();
-                break;
-            case 'number_of_employees':
-                return $this->getNumberOfEmployees();
-                break;
-            case 'number_of_unpaid_invoices':
-                return $this->getNumberOfUnpaidInvoices();
-                break;
-            case 'number_of_unpaid_bills':
-                return $this->getNumberOfUnpaidBills();
-                break;
-            case 'current_year_monthly_income_and_expenses':
-                return $this->currentYearMonthlyIncomeAndExpenses();
-                break;
-            default:
-                return null;
-        }
+        return $char_data;
     }
 }

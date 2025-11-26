@@ -3,7 +3,6 @@
 namespace App\Mail\Client;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -11,11 +10,15 @@ use Illuminate\Queue\SerializesModels;
 
 class ContractNotification extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     private $contract;
+
     private $url;
+
     private $contact;
+
     private $settings;
 
     /**
@@ -24,8 +27,8 @@ class ContractNotification extends Mailable
     public function __construct($contract, $url, $contact = null)
     {
         $this->contract = $contract;
-        $this->url = $url;
-        $this->contact = $contact;
+        $this->url      = $url;
+        $this->contact  = $contact;
         $this->settings = settings([
             'company_name',
             'company_address',
@@ -62,8 +65,8 @@ class ContractNotification extends Mailable
             view: 'emails.contract.notification',
             with: [
                 'contract' => $this->contract,
-                'url' => $this->url,
-                'contact' => $this->contact,
+                'url'      => $this->url,
+                'contact'  => $this->contact,
                 'settings' => $this->settings,
             ]
         );

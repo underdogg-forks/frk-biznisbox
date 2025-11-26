@@ -2,27 +2,33 @@
 
 namespace App\Models;
 
+use App\Mail\Admin\UserDetails;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Support\Facades\Hash;
-use Laravolt\Avatar\Avatar;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\Admin\UserDetails;
 use Laravel\Passport\HasApiTokens;
+use Laravolt\Avatar\Avatar;
+use OwenIt\Auditing\Contracts\Auditable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements Auditable
 {
-    use HasFactory, Notifiable, SoftDeletes, HasUuids, HasRoles, HasApiTokens;
+    use HasApiTokens;
+    use HasFactory;
+    use HasRoles;
+    use HasUuids;
+    use Notifiable;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
+     *
      * @var array<string>
      */
     protected $fillable = [
@@ -47,15 +53,6 @@ class User extends Authenticatable implements Auditable
 
     protected $dates = ['deleted_at', 'updated_at', 'created_at', 'last_login_at'];
 
-    protected function casts(): array
-    {
-        return [
-            'password' => 'hashed',
-            'two_factor_auth' => 'boolean',
-            'active' => 'boolean',
-        ];
-    }
-
     public function generateTags(): array
     {
         return ['User'];
@@ -67,45 +64,25 @@ class User extends Authenticatable implements Auditable
     }
 
     /**
-     * Get the full name attribute.
-     * @return string
-     */
-    protected function fullName(): Attribute
-    {
-        return Attribute::make(get: fn(mixed $value, array $attributes) => $attributes['first_name'] . ' ' . $attributes['last_name']);
-    }
-
-    protected function AvatarUrl(): Attribute
-    {
-        return Attribute::make(
-            get: fn(mixed $value, array $attributes) => $attributes['picture'] ? asset('storage/' . $attributes['picture']) : null
-        );
-    }
-
-    protected function Role(): Attribute
-    {
-        return Attribute::make(get: fn(mixed $value, array $attributes) => $this->getRoleNames()->toArray()[0] ?? null);
-    }
-
-    /**
      * Return a key value array, containing any custom claims to be added to the JWT.
+     *
      * @return array
      */
     public function getJWTCustomClaims()
     {
         return [
             'data' => [
-                'id' => $this->id,
-                'first_name' => $this->first_name,
-                'last_name' => $this->last_name,
-                'email' => $this->email,
-                'picture' => $this->picture,
-                'language' => $this->language,
-                'timezone' => $this->timezone,
-                'theme' => $this->theme,
+                'id'          => $this->id,
+                'first_name'  => $this->first_name,
+                'last_name'   => $this->last_name,
+                'email'       => $this->email,
+                'picture'     => $this->picture,
+                'language'    => $this->language,
+                'timezone'    => $this->timezone,
+                'theme'       => $this->theme,
                 'permissions' => $this->getPermissionsViaRoles()->pluck('name')->toArray(),
-                'roles' => $this->getRoleNames()->toArray(),
-                'avatar_url' => $this->avatar_url,
+                'roles'       => $this->getRoleNames()->toArray(),
+                'avatar_url'  => $this->avatar_url,
             ],
         ];
     }
@@ -117,11 +94,13 @@ class User extends Authenticatable implements Auditable
     {
         $users = $this->where('active', true)->get(['id', 'first_name', 'last_name', 'email', 'picture', 'language', 'timezone']);
         createActivityLog('retrievePublic', null, 'App\Models\User', 'User');
+
         return $users;
     }
 
     /**
      * Get all users.
+     *
      * @return string
      */
     public function getUsers()
@@ -130,6 +109,7 @@ class User extends Authenticatable implements Auditable
         if ($users) {
             return $users;
         }
+
         return false;
     }
 
@@ -139,6 +119,7 @@ class User extends Authenticatable implements Auditable
         if ($user) {
             return $user;
         }
+
         return false;
     }
 
@@ -149,13 +130,13 @@ class User extends Authenticatable implements Auditable
         }
 
         $user = $this->create([
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'active' => $data['active'],
-            'language' => $data['language'] ?? 'en',
-            'timezone' => $data['timezone'] ?? 'UTC',
+            'first_name'      => $data['first_name'],
+            'last_name'       => $data['last_name'],
+            'email'           => $data['email'],
+            'password'        => Hash::make($data['password']),
+            'active'          => $data['active'],
+            'language'        => $data['language'] ?? 'en',
+            'timezone'        => $data['timezone'] ?? 'UTC',
             'two_factor_auth' => false,
         ]);
 
@@ -168,15 +149,7 @@ class User extends Authenticatable implements Auditable
 
             return true;
         }
-        return false;
-    }
 
-    private function checkIfUserExists($email)
-    {
-        $user = $this->where('email', $email)->first();
-        if ($user) {
-            return true;
-        }
         return false;
     }
 
@@ -196,16 +169,17 @@ class User extends Authenticatable implements Auditable
             $user->syncRoles($data['role']);
             $user->update([
                 'first_name' => $data['first_name'] ?? $user->first_name,
-                'last_name' => $data['last_name'] ?? $user->last_name,
-                'email' => $data['email'] ?? $user->email,
-                'active' => $data['active'] ?? $user->active,
-                'language' => $data['language'] ?? $user->language,
-                'timezone' => $data['timezone'] ?? $user->timezone,
+                'last_name'  => $data['last_name'] ?? $user->last_name,
+                'email'      => $data['email'] ?? $user->email,
+                'active'     => $data['active'] ?? $user->active,
+                'language'   => $data['language'] ?? $user->language,
+                'timezone'   => $data['timezone'] ?? $user->timezone,
             ]);
             $user->update();
 
             return true;
         }
+
         return false;
     }
 
@@ -223,6 +197,7 @@ class User extends Authenticatable implements Auditable
 
             return true;
         }
+
         return false;
     }
 
@@ -237,24 +212,26 @@ class User extends Authenticatable implements Auditable
         if ($user) {
             $user->syncRoles([]);
             $user->update([
-                'email' => null,
-                'password' => null,
-                'active' => false,
+                'email'      => null,
+                'password'   => null,
+                'active'     => false,
                 'deleted_at' => now(),
             ]);
+
             return true;
         }
+
         return false;
     }
 
     public function generateUserAvatar($user_id, $first_name, $last_name)
     {
         $avatar = new Avatar([
-            'width' => 300,
-            'height' => 300,
-            'quality' => 90,
-            'format' => 'png',
-            'type' => 'square',
+            'width'       => 300,
+            'height'      => 300,
+            'quality'     => 90,
+            'format'      => 'png',
+            'type'        => 'square',
             'backgrounds' => [
                 '#f44336',
                 '#E91E63',
@@ -272,11 +249,12 @@ class User extends Authenticatable implements Auditable
                 '#FF9800',
                 '#FF5722',
             ],
-            'fontSize' => 120,
+            'fontSize'   => 120,
             'font_color' => '#ffffff',
         ]);
         $img_path = $user_id . '.png';
         $avatar->create($first_name . ' ' . $last_name)->save(storage_path('/app/public/' . $img_path));
+
         return $this->find($user_id)->update(['picture' => $img_path]);
     }
 
@@ -289,8 +267,48 @@ class User extends Authenticatable implements Auditable
                     Mail::to($email)->send(new UserDetails($user, $password));
                 }
             }
+
             return true;
         }
+
         return false;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'password'        => 'hashed',
+            'two_factor_auth' => 'boolean',
+            'active'          => 'boolean',
+        ];
+    }
+
+    /**
+     * Get the full name attribute.
+     *
+     * @return string
+     */
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(get: fn (mixed $value, array $attributes) => $attributes['first_name'] . ' ' . $attributes['last_name']);
+    }
+
+    protected function AvatarUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes) => $attributes['picture'] ? asset('storage/' . $attributes['picture']) : null
+        );
+    }
+
+    protected function Role(): Attribute
+    {
+        return Attribute::make(get: fn (mixed $value, array $attributes) => $this->getRoleNames()->toArray()[0] ?? null);
+    }
+
+    private function checkIfUserExists($email)
+    {
+        $user = $this->where('email', $email)->first();
+
+        return (bool) ($user);
     }
 }

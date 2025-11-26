@@ -11,7 +11,6 @@ class CreateAuditsTable extends Migration
      *
      * @return void
      */
-
     public function up()
     {
         $table = config('audit.drivers.database.table', 'activity_log');

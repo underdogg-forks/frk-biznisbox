@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Category extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'categories';
@@ -51,15 +52,17 @@ class Category extends Model implements Auditable
     }
 
     /**
-     * Create new category
-     * @param string $name Name of the category (it will be used as a label)
-     * @param string $module Module of the category (in which module it will be used - ex. 'archive')
-     * @param string $description Description of the category
-     * @param string $color Color of the category (hexadecimal)
-     * @param string $parent_id Parent category id
-     * @param string $icon Icon of the category (ex. 'fa fa-folder')
+     * Create new category.
+     *
+     * @param string $name            Name of the category (it will be used as a label)
+     * @param string $module          Module of the category (in which module it will be used - ex. 'archive')
+     * @param string $description     Description of the category
+     * @param string $color           Color of the category (hexadecimal)
+     * @param string $parent_id       Parent category id
+     * @param string $icon            Icon of the category (ex. 'fa fa-folder')
      * @param string $additional_info Additional info of the category (ex. 'transfer')
-     * @return boolean True if category is created, false if not
+     *
+     * @return bool True if category is created, false if not
      */
     public function createCategory(
         $name,
@@ -71,49 +74,52 @@ class Category extends Model implements Auditable
         $additional_info = null
     ) {
         $category = $this->create([
-            'name' => $name,
-            'description' => $description,
-            'color' => $color,
-            'module' => $module,
-            'icon' => $icon,
-            'parent_id' => $parent_id,
+            'name'            => $name,
+            'description'     => $description,
+            'color'           => $color,
+            'module'          => $module,
+            'icon'            => $icon,
+            'parent_id'       => $parent_id,
             'additional_info' => $additional_info,
         ]);
 
         if ($category) {
             return $category;
         }
+
         return false;
     }
 
     /**
-     * Update category
-     * @param UUID $id Category UUID
+     * Update category.
+     *
+     * @param UUID  $id   Category UUID
      * @param mixed $data Data to update (ex. ['name' => 'New name']) if some data is not provided it will not be updated (it will stay the same)
-     * @return boolean True if category is updated, false if not
+     *
+     * @return bool True if category is updated, false if not
      */
     public function updateCategory($id, $data)
     {
         $category = $this->find($id);
         $category = $category->update([
-            'name' => $data['name'] ?? $category->name,
-            'description' => $data['description'] ?? $category->description,
-            'color' => $data['color'] ?? $category->color,
-            'module' => $data['module'] ?? $category->module,
-            'parent_id' => $data['parent_id'] ?? $category->parent_id,
-            'icon' => $data['icon'] ?? $category->icon,
+            'name'            => $data['name'] ?? $category->name,
+            'description'     => $data['description'] ?? $category->description,
+            'color'           => $data['color'] ?? $category->color,
+            'module'          => $data['module'] ?? $category->module,
+            'parent_id'       => $data['parent_id'] ?? $category->parent_id,
+            'icon'            => $data['icon'] ?? $category->icon,
             'additional_info' => $data['additional_info'] ?? $category->additional_info,
         ]);
-        if ($category) {
-            return true;
-        }
-        return false;
+
+        return (bool) ($category);
     }
 
     /**
-     * Delete category
+     * Delete category.
+     *
      * @param UUID $id Category id
-     * @return boolean True if category is deleted, false if not
+     *
+     * @return bool True if category is deleted, false if not
      */
     public function deleteCategory($id)
     {
@@ -121,20 +127,25 @@ class Category extends Model implements Auditable
     }
 
     /**
-     * Get category by module
+     * Get category by module.
+     *
      * @param string $module Module of the category (in which module it will be used - ex. 'archive')
+     *
      * @return object Category object
      */
     public function getCategoriesByModule($module)
     {
         $categories = $this->with('children')->where('module', $module)->whereNull('parent_id')->get();
         createActivityLog('retrieve', null, 'App\Models\Category', 'Category');
+
         return $categories;
     }
 
     /**
-     * Get category by id
+     * Get category by id.
+     *
      * @param UUID $id Category id
+     *
      * @return object Category object
      */
     public function getCategory($id)
@@ -142,8 +153,10 @@ class Category extends Model implements Auditable
         $category = $this->where('id', $id)->first();
         if ($category) {
             createActivityLog('retrieve', $id, 'App\Models\Category', 'Category');
+
             return $category;
         }
+
         return false;
     }
 }

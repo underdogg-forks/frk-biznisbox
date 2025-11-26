@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\QuoteService;
 use App\Http\Requests\QuoteRequest;
+use App\Services\QuoteService;
+use Illuminate\Http\Request;
 
 class QuoteController extends Controller
 {
@@ -22,6 +22,7 @@ class QuoteController extends Controller
         if ($quotes) {
             return api_response($quotes, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 404);
     }
 
@@ -32,26 +33,29 @@ class QuoteController extends Controller
         if ($quote) {
             return api_response($quote, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found_with_id'), 404);
     }
 
     public function createQuote(QuoteRequest $request)
     {
-        $data = $request->all();
+        $data  = $request->all();
         $quote = $this->quoteService->createQuote($data);
         if ($quote) {
             return api_response($quote, __('responses.item_created_successfully'));
         }
+
         return api_response(null, __('responses.item_not_created'), 400);
     }
 
     public function updateQuote(QuoteRequest $request, $id)
     {
-        $data = $request->all();
+        $data  = $request->all();
         $quote = $this->quoteService->updateQuote($id, $data);
         if ($quote) {
             return api_response($quote, __('responses.item_updated_successfully'));
         }
+
         return api_response(null, __('responses.item_not_updated'), 400);
     }
 
@@ -61,6 +65,7 @@ class QuoteController extends Controller
         if ($quote) {
             return api_response($quote, __('responses.item_deleted_successfully'));
         }
+
         return api_response(null, __('responses.item_not_deleted'), 400);
     }
 
@@ -70,6 +75,7 @@ class QuoteController extends Controller
         if ($number) {
             return api_response($number, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.error_occurred'), 400);
     }
 
@@ -79,6 +85,7 @@ class QuoteController extends Controller
         if ($quote) {
             return api_response($quote, __('responses.item_shared_successfully'));
         }
+
         return api_response(null, __('responses.item_not_shared'), 400);
     }
 
@@ -88,16 +95,18 @@ class QuoteController extends Controller
         if ($invoice) {
             return api_response($invoice, __('responses.item_converted_successfully'));
         }
+
         return api_response(null, __('responses.item_not_converted'), 400);
     }
 
     public function getQuotePdf(Request $request, $id)
     {
-        if (!$request->hasValidSignatureWhileIgnoring(['lang'])) {
+        if ( ! $request->hasValidSignatureWhileIgnoring(['lang'])) {
             return api_response(null, __('responses.invalid_signature'), 400);
         }
         $type = $request->input('type', 'stream');
-        $pdf = $this->quoteService->getQuotePdf($id, $type);
+        $pdf  = $this->quoteService->getQuotePdf($id, $type);
+
         return $pdf;
     }
 
@@ -109,9 +118,10 @@ class QuoteController extends Controller
             $contact = null;
         }
         $quote_notification = $this->quoteService->sendQuoteNotification($id, $contact);
-        if (!$quote_notification) {
+        if ( ! $quote_notification) {
             return api_response(null, __('responses.notification_not_sent'), 400);
         }
+
         return api_response($quote_notification, __('responses.notification_sent_successfully'));
     }
 }

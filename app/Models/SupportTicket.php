@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class SupportTicket extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $fillable = [
         'assignee_id',
@@ -36,12 +38,19 @@ class SupportTicket extends Model implements Auditable
     ];
 
     protected $casts = [
-        'tags' => 'array',
+        'tags'           => 'array',
         'custom_contact' => 'boolean',
-        'is_internal' => 'boolean',
+        'is_internal'    => 'boolean',
     ];
 
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+
+    public static function getTicketNumber()
+    {
+        $number = generateNextNumber(settings('support_ticket_number_format'), 'support_ticket');
+
+        return $number;
+    }
 
     public function generateTags(): array
     {
@@ -83,8 +92,10 @@ class SupportTicket extends Model implements Auditable
         $supportTickets = self::with('assignee:id,first_name,last_name,email', 'partner', 'category', 'content')->get();
         if ($supportTickets) {
             createActivityLog('retrieve', null, 'App\Models\SupportTicket', 'getSupportTickets');
+
             return $supportTickets;
         }
+
         return false;
     }
 
@@ -98,8 +109,10 @@ class SupportTicket extends Model implements Auditable
         )->find($id);
         if ($supportTicket) {
             createActivityLog('retrieve', $id, 'App\Models\SupportTicket', 'getSupportTicket');
+
             return $supportTicket;
         }
+
         return false;
     }
 
@@ -115,10 +128,10 @@ class SupportTicket extends Model implements Auditable
                     continue;
                 }
                 $content['ticket_id'] = $supportTicket->id;
-                $content['type'] = 'text';
-                $content['status'] = 'sent';
-                $content['from'] =
-                    $content['from'] ?? auth()->user()->first_name . ' ' . auth()->user()->last_name . ' <' . auth()->user()->email . '>';
+                $content['type']      = 'text';
+                $content['status']    = 'sent';
+                $content['from']
+                    ??= auth()->user()->first_name . ' ' . auth()->user()->last_name . ' <' . auth()->user()->email . '>';
                 $content['message'] = $content['message'];
                 SupportTicketContent::create($content);
             }
@@ -127,8 +140,10 @@ class SupportTicket extends Model implements Auditable
         if ($supportTicket) {
             incrementLastItemNumber('support_ticket');
             sendWebhookForEvent('support_ticket:created', $supportTicket->toArray());
+
             return $supportTicket;
         }
+
         return false;
     }
 
@@ -156,8 +171,8 @@ class SupportTicket extends Model implements Auditable
 
         // Clear custom contact details if custom contact is false
         if ($data['custom_contact'] == false) {
-            $data['contact_name'] = null;
-            $data['contact_email'] = null;
+            $data['contact_name']         = null;
+            $data['contact_email']        = null;
             $data['contact_phone_number'] = null;
         }
 
@@ -168,8 +183,10 @@ class SupportTicket extends Model implements Auditable
         if ($supportTicket) {
             $supportTicket = $this->getSupportTicket($id);
             sendWebhookForEvent('support_ticket:updated', $supportTicket->toArray());
+
             return $supportTicket;
         }
+
         return false;
     }
 
@@ -180,24 +197,21 @@ class SupportTicket extends Model implements Auditable
 
         if ($supportTicket) {
             sendWebhookForEvent('support_ticket:deleted', $supportTicket->toArray());
+
             return $supportTicket;
         }
-        return false;
-    }
 
-    public static function getTicketNumber()
-    {
-        $number = generateNextNumber(settings('support_ticket_number_format'), 'support_ticket');
-        return $number;
+        return false;
     }
 
     public function shareTicket($id)
     {
         $ticket = $this->find($id);
-        $key = generateExternalKey('support', $ticket->id);
-        $url = url('/client/support/' . $id . '?key=' . $key . '&lang=' . app()->getLocale());
+        $key    = generateExternalKey('support', $ticket->id);
+        $url    = url('/client/support/' . $id . '?key=' . $key . '&lang=' . app()->getLocale());
         createActivityLog('share', $ticket->id, 'App\Models\SupportTicket', 'shareTicket');
         sendWebhookForEvent('support_ticket:shared', ['id' => $ticket->id, 'url' => $url]);
+
         return $url;
     }
 
@@ -207,6 +221,7 @@ class SupportTicket extends Model implements Auditable
         if ($ticket) {
             return $ticket;
         }
+
         return false;
     }
 
@@ -214,10 +229,10 @@ class SupportTicket extends Model implements Auditable
     {
         SupportTicketContent::create([
             'ticket_id' => $ticket_id,
-            'from' => 'system',
-            'message' => $message,
-            'type' => 'text',
-            'status' => 'sent',
+            'from'      => 'system',
+            'message'   => $message,
+            'type'      => 'text',
+            'status'    => 'sent',
         ]);
     }
 }

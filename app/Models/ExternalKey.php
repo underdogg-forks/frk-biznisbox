@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class ExternalKey extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $fillable = [
@@ -28,13 +29,6 @@ class ExternalKey extends Model implements Auditable
 
     protected $dates = ['expires_at', 'used_at', 'created_at', 'updated_at'];
 
-    protected function casts(): array
-    {
-        return [
-            'used' => 'boolean',
-        ];
-    }
-
     public function generateTags(): array
     {
         return ['ExternalKey'];
@@ -46,13 +40,14 @@ class ExternalKey extends Model implements Auditable
     }
 
     /**
-     * Create a new external key
-     * @param string $module - module name
-     * @param string $module_item_id - id of item in module
+     * Create a new external key.
+     *
+     * @param string $module          - module name
+     * @param string $module_item_id  - id of item in module
      * @param string $creation_method - manual, system
-     * @param string $expires_at - date
-     * @param string $recipient_type - email, phone
-     * @param string $recipient_id - email, phone of recipient
+     * @param string $expires_at      - date
+     * @param string $recipient_type  - email, phone
+     * @param string $recipient_id    - email, phone of recipient
      */
     public function createExternalKey(
         $module,
@@ -63,15 +58,15 @@ class ExternalKey extends Model implements Auditable
         $recipient_type = null
     ) {
         $external_key = $this->create([
-            'module' => $module,
-            'module_item_id' => $module_item_id,
-            'key' => $this->generateKey(),
+            'module'          => $module,
+            'module_item_id'  => $module_item_id,
+            'key'             => $this->generateKey(),
             'creation_method' => $creation_method,
-            'created_by' => auth()->id(),
-            'expires_at' => $expires_at,
-            'used' => false,
-            'recipient_type' => $recipient_type,
-            'recipient_id' => $recipient_id,
+            'created_by'      => auth()->id(),
+            'expires_at'      => $expires_at,
+            'used'            => false,
+            'recipient_type'  => $recipient_type,
+            'recipient_id'    => $recipient_id,
         ]);
 
         if ($external_key) {
@@ -80,7 +75,8 @@ class ExternalKey extends Model implements Auditable
     }
 
     /**
-     * Generate random key
+     * Generate random key.
+     *
      * @return string
      */
     public function generateKey($length = 85)
@@ -89,13 +85,16 @@ class ExternalKey extends Model implements Auditable
         if ($this->where('key', $key)->exists()) {
             return $this->generateKey();
         }
+
         return $key;
     }
 
     /**
-     * Check if key is valid
+     * Check if key is valid.
+     *
      * @param string $key
      * @param string $module
+     *
      * @return bool
      */
     public function validateKey($key, $module)
@@ -104,19 +103,22 @@ class ExternalKey extends Model implements Auditable
 
         if ($external_key) {
             $external_key = $external_key->update([
-                'used' => true,
+                'used'    => true,
                 'used_at' => now(),
             ]);
+
             return true;
         }
+
         return false;
     }
 
     /**
-     * Get external key
+     * Get external key.
      *
      * @param string $key
      * @param string $module
+     *
      * @return object|bool
      */
     public function getExternalKey($key, $module)
@@ -127,6 +129,14 @@ class ExternalKey extends Model implements Auditable
         if ($external_key) {
             return $external_key;
         }
+
         return false;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'used' => 'boolean',
+        ];
     }
 }

@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Transaction extends Model implements Auditable
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $fillable = [
         'invoice_id',
@@ -40,16 +42,23 @@ class Transaction extends Model implements Auditable
     ];
 
     protected $casts = [
-        'amount' => 'double',
+        'amount'        => 'double',
         'exchange_rate' => 'double',
-        'date' => 'datetime',
-        'reconciled' => 'boolean',
+        'date'          => 'datetime',
+        'reconciled'    => 'boolean',
         'reconciled_at' => 'datetime',
     ];
 
     protected $dates = ['date', 'reconciled_at', 'created_at', 'updated_at', 'deleted_at', 'date_opened', 'date_closed'];
 
     protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
+
+    public static function getTransactionNumber()
+    {
+        $number = generateNextNumber(settings('transaction_number_format'), 'transaction');
+
+        return $number;
+    }
 
     public function generateTags(): array
     {
@@ -91,8 +100,10 @@ class Transaction extends Model implements Auditable
         $transactions = $this->with('account')->orderBy('date', 'desc')->get();
         if ($transactions) {
             createActivityLog('retrieve', null, 'App\Models\Transaction', 'Transaction');
+
             return $transactions;
         }
+
         return false;
     }
 
@@ -101,8 +112,10 @@ class Transaction extends Model implements Auditable
         $transaction = $this->with(['account', 'category', 'invoice', 'bill', 'customer', 'supplier'])->find($id);
         if ($transaction) {
             createActivityLog('retrieve', $id, 'App\Models\Transaction', 'Transaction');
+
             return $transaction;
         }
+
         return false;
     }
 
@@ -117,12 +130,12 @@ class Transaction extends Model implements Auditable
         }
 
         if ($data['type'] == 'expense') {
-            $data['invoice_id'] = null;
+            $data['invoice_id']  = null;
             $data['customer_id'] = null;
         }
 
         if ($data['type'] == 'income') {
-            $data['bill_id'] = null;
+            $data['bill_id']     = null;
             $data['supplier_id'] = null;
         }
 
@@ -135,20 +148,24 @@ class Transaction extends Model implements Auditable
         if ($transaction) {
             incrementLastItemNumber('transaction');
             sendWebhookForEvent('transaction:created', $transaction->toArray());
+
             return $transaction;
         }
+
         return false;
     }
 
     public function updateTransaction($id, $data)
     {
-        $transaction = $this->find($id);
+        $transaction    = $this->find($id);
         $data['number'] = $transaction->number; // keep the same number - do not change it
-        $transaction = $transaction->update($data);
+        $transaction    = $transaction->update($data);
         if ($transaction) {
             sendWebhookForEvent('transaction:updated', $transaction->toArray());
+
             return $transaction;
         }
+
         return false;
     }
 
@@ -157,15 +174,11 @@ class Transaction extends Model implements Auditable
         $transaction = $this->where('id', $id)->delete();
         if ($transaction) {
             sendWebhookForEvent('transaction:deleted', ['id' => $id]);
+
             return $transaction;
         }
-        return false;
-    }
 
-    public static function getTransactionNumber()
-    {
-        $number = generateNextNumber(settings('transaction_number_format'), 'transaction');
-        return $number;
+        return false;
     }
 
     public function getTransactionsByAccountId($account_id)
@@ -173,8 +186,10 @@ class Transaction extends Model implements Auditable
         $transactions = $this->where('account_id', $account_id)->get();
         if ($transactions) {
             createActivityLog('retrieve', null, 'App\Models\Transaction', 'Transaction');
+
             return $transactions;
         }
+
         return false;
     }
 }

@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Account extends Model implements Auditable
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -33,8 +35,8 @@ class Account extends Model implements Auditable
     ];
 
     protected $casts = [
-        'is_default' => 'boolean',
-        'is_active' => 'boolean',
+        'is_default'  => 'boolean',
+        'is_active'   => 'boolean',
         'date_opened' => 'datetime',
         'date_closed' => 'datetime',
     ];
@@ -71,8 +73,10 @@ class Account extends Model implements Auditable
         $account = self::create($data);
         if ($account) {
             sendWebhookForEvent('account:created', $account->toArray());
+
             return true;
         }
+
         return false;
     }
 
@@ -85,26 +89,30 @@ class Account extends Model implements Auditable
         $account->update($data);
         if ($account) {
             sendWebhookForEvent('account:updated', $account->toArray());
+
             return true;
         }
+
         return false;
     }
 
     public function deleteAccount($id)
     {
-        $account = self::where('id', $id)->first();
+        $account     = self::where('id', $id)->first();
         $accountData = $account->toArray();
         if ($account->is_default == 1) {
             return [
-                'error' => true,
+                'error'   => true,
                 'message' => __('responses.default_account_cannot_be_deleted'),
             ];
         }
         $account = $account->delete();
         if ($account) {
             sendWebhookForEvent('account:deleted', $accountData);
+
             return true;
         }
+
         return $account;
     }
 
@@ -114,8 +122,10 @@ class Account extends Model implements Auditable
         $account->transactions;
         if ($account) {
             createActivityLog('retrieve', $id, 'App\Models\Account', 'Account');
+
             return $account;
         }
+
         return false;
     }
 
@@ -124,24 +134,17 @@ class Account extends Model implements Auditable
         $accounts = $this->orderBy('name', 'asc')->get();
         if ($accounts) {
             createActivityLog('retrieve', null, 'App\Models\Account', 'Account');
+
             return $accounts;
         }
-        return false;
-    }
 
-    private function changeDefaultAccount()
-    {
-        $account = $this->where('is_default', true)->update(['is_default' => false]);
-        if ($account) {
-            return true;
-        }
         return false;
     }
 
     public function getCurrentBalanceAttribute()
     {
         $transactions = $this->transactions()->get();
-        $balance = 0;
+        $balance      = 0;
 
         foreach ($transactions as $transaction) {
             if ($transaction->date > $this->date_opened) {
@@ -160,5 +163,12 @@ class Account extends Model implements Auditable
         }
 
         return $balance + $this->opening_balance;
+    }
+
+    private function changeDefaultAccount()
+    {
+        $account = $this->where('is_default', true)->update(['is_default' => false]);
+
+        return (bool) ($account);
     }
 }

@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class SupportTicketContent extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $table = 'support_ticket_content';
 
@@ -52,6 +54,7 @@ class SupportTicketContent extends Model implements Auditable
         if ($supportTicket) {
             return $supportTicket;
         }
+
         return false;
     }
 
@@ -59,18 +62,20 @@ class SupportTicketContent extends Model implements Auditable
     {
         $message = self::create([
             'ticket_id' => $ticket_id,
-            'to' => $data['to'] ?? null,
-            'from' => $data['from'] ?? auth()->user()->first_name . ' ' . auth()->user()->last_name . ' <' . auth()->user()->email . '>',
-            'message' => $data['message'],
-            'type' => 'text',
-            'status' => 'sent',
+            'to'        => $data['to'] ?? null,
+            'from'      => $data['from'] ?? auth()->user()->first_name . ' ' . auth()->user()->last_name . ' <' . auth()->user()->email . '>',
+            'message'   => $data['message'],
+            'type'      => 'text',
+            'status'    => 'sent',
         ]);
 
         if ($message) {
             sendWebhookForEvent('support_ticket:new_message', [array_merge($message->toArray(), ['ticket_id' => $ticket_id])]);
             $supportTicket = new SupportTicket();
+
             return $supportTicket->getSupportTicket($ticket_id);
         }
+
         return false;
     }
 
@@ -78,15 +83,17 @@ class SupportTicketContent extends Model implements Auditable
     {
         $content = self::find($id);
         $content->update([
-            'to' => $data['to'] ?? null,
+            'to'      => $data['to'] ?? null,
             'message' => $data['message'],
-            'status' => 'sent',
+            'status'  => 'sent',
         ]);
 
         if ($content) {
             sendWebhookForEvent('support_ticket:message_updated', $content->toArray());
+
             return $content;
         }
+
         return false;
     }
 
@@ -97,8 +104,10 @@ class SupportTicketContent extends Model implements Auditable
 
         if ($content) {
             sendWebhookForEvent('support_ticket:message_deleted', $content->toArray());
+
             return $content;
         }
+
         return false;
     }
 }

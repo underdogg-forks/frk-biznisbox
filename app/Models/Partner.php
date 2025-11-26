@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use Exception;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
-use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Support\Facades\Log;
+use OwenIt\Auditing\Contracts\Auditable;
 
 class Partner extends Model implements Auditable
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $table = 'partners';
 
@@ -34,6 +37,13 @@ class Partner extends Model implements Auditable
     ];
 
     protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
+
+    public static function getPartnerNumber()
+    {
+        $number = generateNextNumber(settings('partner_number_format'), 'partner');
+
+        return $number;
+    }
 
     public function generateTags(): array
     {
@@ -89,12 +99,13 @@ class Partner extends Model implements Auditable
     {
         // type can have comma separated values (customer, supplier, both)
         if ($type) {
-            $type = explode(',', $type);
+            $type     = explode(',', $type);
             $partners = $this->with('addresses', 'contacts')->whereIn('type', $type)->get();
         } else {
             $partners = $this->with('addresses', 'contacts')->get();
         }
         createActivityLog('retrieve', null, 'App\Models\Partner', 'Partner');
+
         return $partners;
     }
 
@@ -111,15 +122,17 @@ class Partner extends Model implements Auditable
             'archiveDocuments',
             'activities'
         )->find($id);
-        if (!$partner) {
-            return null;
+        if ( ! $partner) {
+            return;
         }
         createActivityLog('retrieve', $id, 'App\Models\Partner', 'Partner');
+
         return $partner;
     }
 
     /**
-     * Create partner
+     * Create partner.
+     *
      * @param $data - partner data
      */
     public function createPartner($data)
@@ -146,17 +159,20 @@ class Partner extends Model implements Auditable
             DB::commit();
             $partner = $this->getPartner($partner->id); // get partner with addresses and contacts
             sendWebhookForEvent('partner:created', $partner->toArray());
+
             return $partner;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             DB::rollback();
+
             return false;
         }
     }
 
     /**
-     * Update partner
-     * @param $id - partner id
+     * Update partner.
+     *
+     * @param $id   - partner id
      * @param $data - partner data
      */
     public function updatePartner($id, $data)
@@ -175,17 +191,20 @@ class Partner extends Model implements Auditable
                 DB::commit();
                 $partner = $this->getPartner($partner->id);
                 sendWebhookForEvent('partner:updated', $partner->toArray());
+
                 return $partner;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             DB::rollback();
+
             return false;
         }
     }
 
     /**
-     * Delete partner
+     * Delete partner.
+     *
      * @param $id - partner id
      */
     public function deletePartner($id)
@@ -195,18 +214,19 @@ class Partner extends Model implements Auditable
             if ($partner) {
                 $partner->delete();
                 sendWebhookForEvent('partner:deleted', $partner->toArray());
+
                 return true;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }
 
     /**
-     * Force delete partner
+     * Force delete partner.
+     *
      * @param $id - partner id
      */
-
     public function forceDeletePartner($id)
     {
         $partner = $this->find($id);
@@ -214,43 +234,43 @@ class Partner extends Model implements Auditable
             $partner->forceDelete();
             $partner->addresses()->forceDelete();
             $partner->contacts()->forceDelete();
+
             return true;
         }
+
         return false;
     }
 
-    public static function getPartnerNumber()
-    {
-        $number = generateNextNumber(settings('partner_number_format'), 'partner');
-        return $number;
-    }
-
     /**
-     * Get partners limited data (used for select in forms) - provide only basic data and addresses
+     * Get partners limited data (used for select in forms) - provide only basic data and addresses.
+     *
      * @param string|null $type - type of partner (customer, supplier, both)
+     *
      * @return array
      */
     public function getPartnersLimitedData($type = null)
     {
         $partners = $this->getPartners($type);
-        $data = [];
+        $data     = [];
         foreach ($partners as $partner) {
             $data[] = [
-                'id' => $partner->id,
-                'name' => $partner->name,
-                'number' => $partner->number,
-                'type' => $partner->type,
+                'id'          => $partner->id,
+                'name'        => $partner->name,
+                'number'      => $partner->number,
+                'type'        => $partner->type,
                 'entity_type' => $partner->entity_type,
-                'addresses' => $partner->addresses->toArray(),
-                'contacts' => $partner->contacts->toArray(),
+                'addresses'   => $partner->addresses->toArray(),
+                'contacts'    => $partner->contacts->toArray(),
             ];
         }
+
         return $data;
     }
 
     public function getPartnerAddress($partner_id, $address_id)
     {
         $address = $this->find($partner_id)->addresses()->where('id', $address_id)->first();
+
         return $address;
     }
 }

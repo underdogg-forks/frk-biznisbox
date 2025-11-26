@@ -19,9 +19,10 @@ class UnitController extends Controller
     {
         $units = $this->unitService->getUnits();
 
-        if (!$units) {
+        if ( ! $units) {
             return api_response($units, __('responses.item_not_found'), 404);
         }
+
         return api_response($units, __('responses.data_retrieved_successfully'));
     }
 
@@ -29,9 +30,10 @@ class UnitController extends Controller
     {
         $unit = $this->unitService->getUnit($id);
 
-        if (!$unit) {
+        if ( ! $unit) {
             return api_response($unit, __('responses.item_not_found_with_id'), 404);
         }
+
         return api_response($unit, __('responses.data_retrieved_successfully'), 200);
     }
 
@@ -39,9 +41,10 @@ class UnitController extends Controller
     {
         $unit = $this->unitService->getUnitByName($name);
 
-        if (!$unit) {
+        if ( ! $unit) {
             return api_response($unit, __('responses.item_not_found'), 404);
         }
+
         return api_response($unit, __('responses.data_retrieved_successfully'), 200);
     }
 
@@ -50,9 +53,10 @@ class UnitController extends Controller
         $data = $request->all();
         $unit = $this->unitService->createUnit($data);
 
-        if (!$unit) {
+        if ( ! $unit) {
             return api_response($unit, __('responses.item_not_created'), 400);
         }
+
         return api_response($unit, __('responses.item_created_successfully'), 200);
     }
 
@@ -61,22 +65,24 @@ class UnitController extends Controller
         $data = $request->all();
         $unit = $this->unitService->updateUnit($id, $data);
 
-        if (!$unit) {
+        if ( ! $unit) {
             return api_response($unit, __('responses.item_not_updated'), 400);
         }
+
         return api_response($unit, __('responses.item_updated_successfully'), 200);
     }
 
     public function deleteUnit($id)
     {
-        if (!$id) {
+        if ( ! $id) {
             return api_response(null, __('responses.item_not_found_with_id'), 404);
         }
         $unit = $this->unitService->deleteUnit($id);
 
-        if (!$unit) {
+        if ( ! $unit) {
             return api_response($unit, __('responses.item_not_deleted'), 400);
         }
+
         return api_response($unit, __('responses.item_deleted_successfully'), 200);
     }
 }

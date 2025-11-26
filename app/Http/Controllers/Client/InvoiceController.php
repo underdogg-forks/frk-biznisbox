@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Services\Client\InvoiceService;
+use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
@@ -17,60 +17,64 @@ class InvoiceController extends Controller
 
     public function getInvoice(Request $request)
     {
-        $key = $request->key;
+        $key     = $request->key;
         $invoice = $this->invoiceService->getInvoice($key);
 
-        if (!$invoice) {
+        if ( ! $invoice) {
             return api_response(null, __('responses.item_not_found'), 404);
         }
+
         return api_response($invoice, __('responses.data_retrieved_successfully'), 200);
     }
 
     public function payInvoiceStripe(Request $request)
     {
-        $key = $request->key;
+        $key     = $request->key;
         $payment = $this->invoiceService->payInvoiceStripe($key);
 
         if (isset($payment['error'])) {
             return api_response(null, $payment['message'], 400);
         }
+
         return api_response($payment);
     }
 
     public function validateInvoiceStripePayment(Request $request)
     {
         $session_id = $request->cookie('payment_id');
-        $payment = $this->invoiceService->validateInvoiceStripePayment($session_id);
+        $payment    = $this->invoiceService->validateInvoiceStripePayment($session_id);
 
-        if ($request->method == 'web' && !isset($payment['error'])) {
+        if ($request->method == 'web' && ! isset($payment['error'])) {
             return redirect('/client/invoice/' . $request->invoice . '?key=' . $request->key . '&status=success');
         }
 
         if (isset($payment['error']) && $request->method == 'web') {
             return redirect('/client/invoice/' . $request->invoice . '?key=' . $request->key . '&status=error');
         }
+
         return api_response($payment);
     }
 
     public function payInvoicePayPal(Request $request)
     {
-        $key = $request->key;
+        $key     = $request->key;
         $payment = $this->invoiceService->payInvoicePayPal($key);
 
         if (isset($payment['error'])) {
             return api_response(null, $payment['message'], 400);
         }
+
         return api_response($payment);
     }
 
     public function validateInvoicePayPalPayment(Request $request)
     {
         $payment_id = $request->paymentId;
-        $payer_id = $request->PayerID;
+        $payer_id   = $request->PayerID;
 
         $payment = $this->invoiceService->validateInvoicePayPalPayment($payment_id, $payer_id);
 
-        if ($request->method == 'web' && !isset($payment['error'])) {
+        if ($request->method == 'web' && ! isset($payment['error'])) {
             return redirect('/client/invoice/' . $request->invoice . '?key=' . $request->key . '&status=success');
         }
 

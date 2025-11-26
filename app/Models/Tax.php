@@ -2,33 +2,27 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Tax extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $fillable = ['name', 'rate', 'active', 'description', 'type'];
 
-    protected function casts(): array
-    {
-        return [
-            'active' => 'boolean',
-        ];
-    }
+    protected $appends = ['value'];
+
+    protected $hidden = ['created_at', 'updated_at', 'active'];
 
     public function generateTags(): array
     {
         return ['Tax'];
     }
-
-    protected $appends = ['value'];
-
-    protected $hidden = ['created_at', 'updated_at', 'active'];
 
     public function products()
     {
@@ -44,6 +38,7 @@ class Tax extends Model implements Auditable
     {
         $taxes = $this->all()->where('active', true);
         createActivityLog('retrieve', null, 'App\Models\Tax', 'Tax');
+
         return $taxes;
     }
 
@@ -51,12 +46,14 @@ class Tax extends Model implements Auditable
     {
         $tax = $this->find($id);
         createActivityLog('retrieve', $id, 'App\Models\Tax', 'Tax');
+
         return $tax;
     }
 
     public function createTax($data)
     {
         $tax = $this->create($data);
+
         return $tax;
     }
 
@@ -64,6 +61,7 @@ class Tax extends Model implements Auditable
     {
         $tax = $this->find($id);
         $tax->update($data);
+
         return $tax;
     }
 
@@ -71,6 +69,14 @@ class Tax extends Model implements Auditable
     {
         $tax = $this->find($id);
         $tax->delete();
+
         return $tax;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'active' => 'boolean',
+        ];
     }
 }

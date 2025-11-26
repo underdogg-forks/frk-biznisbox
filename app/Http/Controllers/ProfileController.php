@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\ProfileService;
+use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
@@ -20,6 +20,7 @@ class ProfileController extends Controller
             'theme' => 'required|string|in:light,dark',
         ]);
         $this->profileService->changeTheme($theme['theme'] ?? 'light');
+
         return api_response(null, __('responses.theme_changed_successfully'));
     }
 
@@ -34,9 +35,9 @@ class ProfileController extends Controller
     {
         $data = $request->validate([
             'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'email' => 'required|email',
-            'language' => 'string',
+            'last_name'  => 'required|string',
+            'email'      => 'required|email',
+            'language'   => 'string',
         ]);
 
         $this->profileService->updateProfile($data);
@@ -47,7 +48,7 @@ class ProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $data = $request->validate([
-            'password' => 'required|string|min:6',
+            'password'         => 'required|string|min:6',
             'confirm_password' => 'required|string|same:password',
         ]);
 
@@ -66,13 +67,13 @@ class ProfileController extends Controller
     public function enable2FactorAuth(Request $request)
     {
         $data = $request->validate([
-            'code' => 'required|string',
+            'code'   => 'required|string',
             'secret' => 'required|string',
         ]);
 
         $enabled = $this->profileService->enable2FactorAuth($data);
 
-        if (!$enabled) {
+        if ( ! $enabled) {
             return api_response(null, __('responses.invalid_2fa_code'), 400);
         }
 
@@ -107,6 +108,7 @@ class ProfileController extends Controller
     public function getCurrentUserNotifications()
     {
         $notifications = $this->profileService->getCurrentUserNotifications();
+
         return api_response($notifications, __('responses.data_retrieved_successfully'));
     }
 

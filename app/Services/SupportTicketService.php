@@ -8,23 +8,26 @@ use App\Models\SupportTicketContent;
 class SupportTicketService
 {
     private $supportTicketModel;
+
     private $supportTicketContentModel;
 
     public function __construct()
     {
-        $this->supportTicketModel = new SupportTicket();
+        $this->supportTicketModel        = new SupportTicket();
         $this->supportTicketContentModel = new SupportTicketContent();
     }
 
     public function getTickets()
     {
         $tickets = $this->supportTicketModel->getSupportTickets();
+
         return $tickets;
     }
 
     public function getTicket($id)
     {
         $ticket = $this->supportTicketModel->getSupportTicket($id);
+
         return $ticket;
     }
 
@@ -34,6 +37,7 @@ class SupportTicketService
         if ($ticket) {
             return $ticket->contents;
         }
+
         return false;
     }
 
@@ -43,6 +47,7 @@ class SupportTicketService
         if ($ticket) {
             return $ticket;
         }
+
         return false;
     }
 
@@ -52,6 +57,7 @@ class SupportTicketService
         if ($ticket) {
             return $ticket;
         }
+
         return false;
     }
 
@@ -61,6 +67,7 @@ class SupportTicketService
         if ($ticket) {
             return $ticket;
         }
+
         return false;
     }
 
@@ -70,6 +77,7 @@ class SupportTicketService
         if ($ticket) {
             return $ticket;
         }
+
         return false;
     }
 
@@ -79,6 +87,7 @@ class SupportTicketService
         if ($supportTicketMessage) {
             return $supportTicketMessage;
         }
+
         return false;
     }
 
@@ -88,6 +97,7 @@ class SupportTicketService
         if ($supportTicketMessage) {
             return $supportTicketMessage;
         }
+
         return false;
     }
 
@@ -104,6 +114,7 @@ class SupportTicketService
     public function getTicketNumber()
     {
         $ticket = $this->supportTicketModel->getTicketNumber();
+
         return $ticket;
     }
 
@@ -113,6 +124,7 @@ class SupportTicketService
         if ($ticket) {
             return $ticket;
         }
+
         return false;
     }
 }

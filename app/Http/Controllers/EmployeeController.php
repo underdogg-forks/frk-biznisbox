@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\EmployeeService;
 use App\Http\Requests\EmployeeRequest;
+use App\Services\EmployeeService;
 
 class EmployeeController extends Controller
 {
@@ -20,6 +20,7 @@ class EmployeeController extends Controller
         if ($employees) {
             return api_response($employees, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 404);
     }
 
@@ -29,26 +30,29 @@ class EmployeeController extends Controller
         if ($employee) {
             return api_response($employee, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found_with_id'), 404);
     }
 
     public function createEmployee(EmployeeRequest $request)
     {
-        $data = $request->all();
+        $data     = $request->all();
         $employee = $this->employeeService->createEmployee($data);
         if ($employee) {
             return api_response($employee, __('responses.item_created_successfully'));
         }
+
         return api_response(null, __('responses.item_not_created'), 400);
     }
 
     public function updateEmployee(EmployeeRequest $request, $id)
     {
-        $data = $request->all();
+        $data     = $request->all();
         $employee = $this->employeeService->updateEmployee($id, $data);
         if ($employee) {
             return api_response($employee, __('responses.item_updated_successfully'));
         }
+
         return api_response(null, __('responses.item_not_updated'), 400);
     }
 
@@ -58,6 +62,7 @@ class EmployeeController extends Controller
         if ($employee) {
             return api_response($employee, __('responses.item_deleted_successfully'));
         }
+
         return api_response(null, __('responses.item_not_deleted'), 400);
     }
 
@@ -67,6 +72,7 @@ class EmployeeController extends Controller
         if ($employees) {
             return api_response($employees, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 404);
     }
 
@@ -76,6 +82,7 @@ class EmployeeController extends Controller
         if ($employee) {
             return api_response($employee, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 404);
     }
 }

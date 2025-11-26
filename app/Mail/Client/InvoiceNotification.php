@@ -3,7 +3,6 @@
 namespace App\Mail\Client;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -11,11 +10,15 @@ use Illuminate\Queue\SerializesModels;
 
 class InvoiceNotification extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     private $invoice;
+
     private $url;
+
     private $contact;
+
     private $settings;
 
     /**
@@ -23,9 +26,9 @@ class InvoiceNotification extends Mailable
      */
     public function __construct($invoice, $url, $contact = null)
     {
-        $this->invoice = $invoice;
-        $this->url = $url;
-        $this->contact = $contact;
+        $this->invoice  = $invoice;
+        $this->url      = $url;
+        $this->contact  = $contact;
         $this->settings = settings([
             'company_name',
             'company_address',
@@ -57,9 +60,9 @@ class InvoiceNotification extends Mailable
         return new Content(
             view: 'emails.invoice.notification',
             with: [
-                'invoice' => $this->invoice,
-                'url' => $this->url,
-                'contact' => $this->contact,
+                'invoice'  => $this->invoice,
+                'url'      => $this->url,
+                'contact'  => $this->contact,
                 'settings' => $this->settings,
             ]
         );

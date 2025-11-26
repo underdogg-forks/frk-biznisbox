@@ -5,14 +5,10 @@ namespace App\Services;
 use App\Models\Session;
 use App\Models\User;
 use Carbon\Carbon;
-use GuzzleHttp\Psr7\Request;
-use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use PragmaRX\Google2FA\Google2FA;
-
-use function Illuminate\Log\log;
 
 class AuthService
 {
@@ -20,7 +16,7 @@ class AuthService
     {
         $user = User::where('email', $data['email'])->first();
 
-        if (!$user) {
+        if ( ! $user) {
             return [
                 'message' => __('responses.invalid_credentials'),
             ];
@@ -32,16 +28,16 @@ class AuthService
             ];
         }
 
-        if (!$user->active) {
+        if ( ! $user->active) {
             return [
                 'message' => __('responses.disabled_account'),
-                'active' => false,
+                'active'  => false,
             ];
         }
 
-        if ($user && $user->two_factor_auth && !$data['otp']) {
+        if ($user && $user->two_factor_auth && ! $data['otp']) {
             return [
-                'message' => __('responses.two_factor_auth_required'),
+                'message'         => __('responses.two_factor_auth_required'),
                 'two_factor_auth' => true,
             ];
         }
@@ -59,28 +55,27 @@ class AuthService
 
         return [
             'access_token' => $token->accessToken,
-            'token_type' => 'bearer',
-            'expires_in' => Carbon::parse($token->token->expires_at)->toDateTimeString(),
+            'token_type'   => 'bearer',
+            'expires_in'   => Carbon::parse($token->token->expires_at)->toDateTimeString(),
         ];
     }
 
     public function Logout($token)
     {
-
-       // Session::revokeSession($token_data['sub'], $token_data['jti']);
+        // Session::revokeSession($token_data['sub'], $token_data['jti']);
         Auth::logout();
     }
 
     public function Refresh()
     {
         $token = auth()->refresh();
+
         return [
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' =>
-                now()
-                    ->addSeconds(auth()->factory()->getTTL() * 60)
-                    ->toDateTimeString() . ' UTC',
+            'token_type'   => 'bearer',
+            'expires_in'   => now()
+                ->addSeconds(auth()->factory()->getTTL() * 60)
+                ->toDateTimeString() . ' UTC',
         ];
     }
 
@@ -103,10 +98,10 @@ class AuthService
 
         $valid = $google2fa->verifyKey($secret, $data['otp'], 2);
 
-        if (!$valid) {
+        if ( ! $valid) {
             return [
                 'message' => __('responses.invalid_2fa_code'),
-                'otp' => false,
+                'otp'     => false,
             ];
         }
 

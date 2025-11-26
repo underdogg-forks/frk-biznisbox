@@ -2,26 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Setting extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'settings';
 
     protected $fillable = ['key', 'value', 'type', 'is_public'];
-
-    protected function casts(): array
-    {
-        return [
-            'is_public' => 'boolean',
-        ];
-    }
 
     public function generateTags(): array
     {
@@ -52,6 +46,7 @@ class Setting extends Model implements Auditable
             return [$item->key => $item->value];
         });
         createActivityLog('retrieve', null, 'App\Models\Setting', 'Setting');
+
         return $settings;
     }
 
@@ -64,6 +59,7 @@ class Setting extends Model implements Auditable
                 return [$item->key => $item->value];
             });
         createActivityLog('retrieve', null, 'App\Models\Setting', 'Setting', null, null, 'public', 'public'); # there are errors in logs
+
         return $settings;
     }
 
@@ -74,13 +70,12 @@ class Setting extends Model implements Auditable
             foreach ($key as $name => $value) {
                 self::set($name, $value);
             }
+
             return true;
         }
         $setting = self::updateOrCreate(['key' => $key], ['value' => $value]);
-        if ($setting) {
-            return true;
-        }
-        return false;
+
+        return (bool) ($setting);
     }
 
     // Get setting value by key or default value if not exists
@@ -89,6 +84,7 @@ class Setting extends Model implements Auditable
         if (self::has($key)) {
             return self::where('key', $key)->first()->value;
         }
+
         return $default;
     }
 
@@ -104,6 +100,7 @@ class Setting extends Model implements Auditable
         if (self::has($key)) {
             return self::where('key', $key)->delete();
         }
+
         return false;
     }
 
@@ -113,6 +110,14 @@ class Setting extends Model implements Auditable
         foreach ($keys as $key) {
             $settings[$key] = self::get($key);
         }
+
         return $settings;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_public' => 'boolean',
+        ];
     }
 }

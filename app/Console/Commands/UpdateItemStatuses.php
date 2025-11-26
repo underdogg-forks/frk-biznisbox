@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Invoice;
-use App\Models\Contract;
 use App\Models\Bill;
+use App\Models\Contract;
+use App\Models\Invoice;
 use App\Models\Quote;
 use App\Models\Session;
 use Illuminate\Console\Command;

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Services\OpenBankingService;
+use Illuminate\Console\Command;
 
 class RefreshBankTransactions extends Command
 {
@@ -27,7 +27,7 @@ class RefreshBankTransactions extends Command
     public function handle()
     {
         $openBankingService = new OpenBankingService();
-        $result = $openBankingService->refreshBankTransactions();
+        $result             = $openBankingService->refreshBankTransactions();
         if ($result) {
             $this->info('Bank transactions refreshed successfully');
         } else {

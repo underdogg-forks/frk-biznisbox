@@ -3,18 +3,20 @@
 namespace App\Mail\Admin;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
 
 class UserDetails extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     private $user;
+
     private $password;
+
     /**
      * Create a new message instance.
      *
@@ -22,7 +24,7 @@ class UserDetails extends Mailable
      */
     public function __construct($user, $password = null)
     {
-        $this->user = $user;
+        $this->user     = $user;
         $this->password = $password;
     }
 
@@ -42,8 +44,8 @@ class UserDetails extends Mailable
         return new Content(
             view: 'emails.admin.user_details',
             with: [
-                'user' => $this->user,
-                'app' => settings('company_name'),
+                'user'     => $this->user,
+                'app'      => settings('company_name'),
                 'password' => $this->password,
             ]
         );

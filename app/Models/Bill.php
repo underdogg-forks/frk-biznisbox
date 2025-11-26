@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Support\Facades\URL;
+use OwenIt\Auditing\Contracts\Auditable;
 
 class Bill extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'bills';
@@ -39,11 +40,11 @@ class Bill extends Model implements Auditable
     ];
 
     protected $casts = [
-        'date' => 'datetime',
-        'due_date' => 'datetime',
-        'total' => 'double',
-        'tax' => 'double',
-        'discount' => 'double',
+        'date'          => 'datetime',
+        'due_date'      => 'datetime',
+        'total'         => 'double',
+        'tax'           => 'double',
+        'discount'      => 'double',
         'currency_rate' => 'double',
     ];
 
@@ -52,6 +53,13 @@ class Bill extends Model implements Auditable
     protected $hidden = ['deleted_at', 'updated_at', 'created_at'];
 
     protected $appends = ['preview', 'download'];
+
+    public static function getBillNumber()
+    {
+        $number = generateNextNumber(settings('bill_number_format'), 'bill');
+
+        return $number;
+    }
 
     public function generateTags(): array
     {
@@ -71,7 +79,7 @@ class Bill extends Model implements Auditable
     public function getPreviewAttribute()
     {
         return URL::signedRoute('getBillPdf', [
-            'id' => $this->id,
+            'id'   => $this->id,
             'type' => 'preview',
         ]);
     }
@@ -79,7 +87,7 @@ class Bill extends Model implements Auditable
     public function getDownloadAttribute()
     {
         return URL::signedRoute('getBillPdf', [
-            'id' => $this->id,
+            'id'   => $this->id,
             'type' => 'download',
         ]);
     }
@@ -88,6 +96,7 @@ class Bill extends Model implements Auditable
     {
         $bill = $this->with(['items'])->get();
         createActivityLog('retrieve', null, 'App\Models\Bill', 'Bill');
+
         return $bill;
     }
 
@@ -95,6 +104,7 @@ class Bill extends Model implements Auditable
     {
         $bill = $this->with(['items'])->find($id);
         createActivityLog('retrieve', $id, 'App\Models\Bill', 'Bill');
+
         return $bill;
     }
 
@@ -121,8 +131,10 @@ class Bill extends Model implements Auditable
             $bill->save();
             sendWebhookForEvent('bill:created', $bill->toArray());
             incrementLastItemNumber('bill');
+
             return $bill;
         }
+
         return false;
     }
 
@@ -130,7 +142,7 @@ class Bill extends Model implements Auditable
     {
         $bill = $this->find($id);
         if ($bill) {
-            $data = setSupplierData($data, $data['supplier_id'], $data['supplier_address_id']);
+            $data           = setSupplierData($data, $data['supplier_id'], $data['supplier_address_id']);
             $data['number'] = $bill['number'];
             $bill->update($data);
             if (isset($data['items'])) {
@@ -141,13 +153,15 @@ class Bill extends Model implements Auditable
                 }
             }
 
-            $items = $bill->items()->get();
-            $total = calculateTotalHelper($items, $data['discount'], $data['discount_type']);
+            $items       = $bill->items()->get();
+            $total       = calculateTotalHelper($items, $data['discount'], $data['discount_type']);
             $bill->total = $total;
             $bill->save();
             sendWebhookForEvent('bill:updated', $bill->toArray());
+
             return true;
         }
+
         return false;
     }
 
@@ -157,17 +171,12 @@ class Bill extends Model implements Auditable
         $bill->items()->delete();
         $bill->delete();
         sendWebhookForEvent('bill:deleted', ['id' => $id]);
+
         return $bill;
     }
 
-    public static function getBillNumber()
-    {
-        $number = generateNextNumber(settings('bill_number_format'), 'bill');
-        return $number;
-    }
-
     /**
-     * Update bill status cron job
+     * Update bill status cron job.
      */
     public function updateBillStatusCron()
     {

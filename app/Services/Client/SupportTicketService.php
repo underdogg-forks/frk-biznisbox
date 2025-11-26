@@ -2,52 +2,53 @@
 
 namespace App\Services\Client;
 
+use App\Models\ExternalKey;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketContent;
-use App\Models\ExternalKey;
 use Illuminate\Support\Str;
 
 class SupportTicketService
 {
     public function getTicket($key)
     {
-        if (!$key) {
-            return null;
+        if ( ! $key) {
+            return;
         }
 
         if (validateExternalKey($key, 'support')) {
             $key_data = new ExternalKey();
             $key_data = $key_data->getExternalKey($key, 'support');
-            $ticket = new SupportTicket();
-            $ticket = $ticket->getClientTicket($key_data->module_item_id);
+            $ticket   = new SupportTicket();
+            $ticket   = $ticket->getClientTicket($key_data->module_item_id);
 
-            if (!$ticket) {
+            if ( ! $ticket) {
                 return false;
             }
+
             return $ticket;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     public function replayOnTicket($key, $data)
     {
-        if (!$key) {
-            return null;
+        if ( ! $key) {
+            return;
         }
 
         if (validateExternalKey($key, 'support')) {
             $key_data = new ExternalKey();
             $key_data = $key_data->getExternalKey($key, 'support');
-            $ticket = new SupportTicket();
-            $ticket = $ticket->find($key_data->module_item_id);
-            if (!$ticket) {
+            $ticket   = new SupportTicket();
+            $ticket   = $ticket->find($key_data->module_item_id);
+            if ( ! $ticket) {
                 return false;
             }
             $content = new SupportTicketContent();
 
             $response = [
-                'from' => $data['from'] ?? ($key_data->recipient_id ?? 'Client'),
+                'from'    => $data['from'] ?? ($key_data->recipient_id ?? 'Client'),
                 'message' => $data['message'],
             ];
 
@@ -61,11 +62,13 @@ class SupportTicketService
                     'view',
                     'support/' . $ticket->id
                 );
+
                 return $content;
             }
-            return false;
-        } else {
+
             return false;
         }
+
+        return false;
     }
 }

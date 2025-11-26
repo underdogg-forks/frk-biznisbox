@@ -2,19 +2,22 @@
 
 namespace App\Models;
 
+use Exception;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Support\Facades\URL;
+use OwenIt\Auditing\Contracts\Auditable;
 
 class Invoice extends Model implements Auditable
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $table = 'invoices';
 
@@ -57,16 +60,16 @@ class Invoice extends Model implements Auditable
 
     protected $appends = ['preview', 'download', 'sum_of_payments', 'overpaid_amount'];
 
-    protected function casts(): array
+    /**
+     * Get invoice number.
+     *
+     * @return string invoice number
+     */
+    public static function getInvoiceNumber()
     {
-        return [
-            'discount' => 'double',
-            'tax' => 'double',
-            'total' => 'double',
-            'currency_rate' => 'double',
-            'date' => 'datetime',
-            'due_date' => 'datetime',
-        ];
+        $number = generateNextNumber(settings('invoice_number_format'), 'invoice');
+
+        return $number;
     }
 
     public function generateTags(): array
@@ -102,7 +105,7 @@ class Invoice extends Model implements Auditable
     public function getPreviewAttribute()
     {
         return URL::signedRoute('getInvoicePdf', [
-            'id' => $this->id,
+            'id'   => $this->id,
             'type' => 'preview',
         ]);
     }
@@ -110,7 +113,7 @@ class Invoice extends Model implements Auditable
     public function getDownloadAttribute()
     {
         return URL::signedRoute('getInvoicePdf', [
-            'id' => $this->id,
+            'id'   => $this->id,
             'type' => 'download',
         ]);
     }
@@ -126,45 +129,52 @@ class Invoice extends Model implements Auditable
     }
 
     /**
-     * Get all invoices
+     * Get all invoices.
+     *
      * @return void
      */
     public function getInvoices()
     {
         $invoices = self::with('items')->get();
-        if (!$invoices) {
-            return null;
+        if ( ! $invoices) {
+            return;
         }
         createActivityLog('retrieve', null, 'App\Models\Invoice', 'Invoice');
+
         return $invoices;
     }
 
     /**
-     * Get invoice by id
+     * Get invoice by id.
+     *
      * @param string $id
+     *
      * @return object invoice
      */
     public function getInvoice($id)
     {
         $invoice = self::with('items', 'customer', 'payer', 'salesPerson:first_name,id,last_name,email', 'transactions')->find($id);
-        if (!$invoice) {
-            return null;
+        if ( ! $invoice) {
+            return;
         }
         createActivityLog('retrieve', $id, 'App\Models\Invoice', 'Invoice');
+
         return $invoice;
     }
 
     /**
-     * Create invoice
+     * Create invoice.
+     *
      * @param [array] $data
-     * @return boolean success or fail to create invoice
+     *
+     * @return bool success or fail to create invoice
      */
     public function createInvoice($data)
     {
-        $data = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
-        $data = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
+        $data                     = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
+        $data                     = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
         $data['default_currency'] = settings('default_currency');
-        $data['number'] = $this->getInvoiceNumber();
+        $data['number']           = $this->getInvoiceNumber();
 
         if ($data['currency'] == $data['default_currency']) {
             $data['currency_rate'] = 1;
@@ -187,7 +197,7 @@ class Invoice extends Model implements Auditable
             }
             $items = $invoice->items()->get();
 
-            $total = calculateTotalHelper($items, $data['discount'], $data['discount_type'], $data['currency_rate']);
+            $total          = calculateTotalHelper($items, $data['discount'], $data['discount_type'], $data['currency_rate']);
             $invoice->total = $total;
             if ($total == 0) {
                 // if total is 0, invoice is paid
@@ -196,19 +206,22 @@ class Invoice extends Model implements Auditable
             $invoice->save();
             sendWebhookForEvent('invoice:created', $invoice->toArray());
             incrementLastItemNumber('invoice');
+
             return $invoice;
         }
     }
 
     /**
-     * Update invoice
+     * Update invoice.
+     *
      * @param array $data
-     * @return boolean success or fail to update invoice
+     *
+     * @return bool success or fail to update invoice
      */
     public function updateInvoice($id, $data)
     {
-        $data = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
-        $data = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
+        $data    = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
+        $data    = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
         $invoice = $this->find($id);
         if ($invoice->status == 'paid') {
             return false;
@@ -236,24 +249,27 @@ class Invoice extends Model implements Auditable
                 foreach ($data['items'] as $item) {
                     $this->decrementStock($item['product_id'], $item['quantity']);
                     $item['discount_type'] = $data['discount_type'] ?? 'percent';
-                    $item['total'] = calculateItemTotalHelper($item);
+                    $item['total']         = calculateItemTotalHelper($item);
                     $invoice->items()->create($item);
                 }
             }
 
-            $items = $invoice->items()->get();
-            $total = calculateTotalHelper($items, $data['discount'], $data['discount_type'], $data['currency_rate']);
+            $items          = $invoice->items()->get();
+            $total          = calculateTotalHelper($items, $data['discount'], $data['discount_type'], $data['currency_rate']);
             $invoice->total = $total;
             $invoice->save();
             sendWebhookForEvent('invoice:updated', $invoice->toArray());
+
             return $invoice;
         }
     }
 
     /**
-     * Delete invoice
+     * Delete invoice.
+     *
      * @param UUID $id
-     * @return boolean success or fail to delete invoice
+     *
+     * @return bool success or fail to delete invoice
      */
     public function deleteInvoice($id)
     {
@@ -273,19 +289,88 @@ class Invoice extends Model implements Auditable
                 $invoice->delete();
                 DB::commit();
                 sendWebhookForEvent('invoice:deleted', $invoice->toArray());
+
                 return true;
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             DB::rollBack();
+
             return false;
         }
     }
 
     /**
-     * Decrement stock of product when invoice is created or updated
+     * Share invoice by unique key.
+     *
+     * @param UUID $invoice_id
+     *
+     * @return string url
+     */
+    public function shareInvoice($invoice_id)
+    {
+        if ($this->find($invoice_id)) {
+            $key = generateExternalKey('invoice', $invoice_id);
+            $url = url('/client/invoice/' . $invoice_id . '?key=' . $key . '&lang=' . app()->getLocale());
+            createActivityLog('share', $invoice_id, 'App\Models\Invoice', 'Invoice');
+            sendWebhookForEvent('invoice:shared', ['invoice_id' => $invoice_id, 'url' => $url]);
+
+            return $url;
+        }
+    }
+
+    /**
+     * Get client invoice.
+     *
+     * @param UUID $id  - invoice id
+     * @param bool $log - log activity
+     *
+     * @return JSON invoice
+     */
+    public function getClientInvoice($id, $log = false)
+    {
+        $invoice = $this->with('items', 'transactions', 'salesPerson:id,first_name,last_name,email')->find($id);
+        unset($invoice->notes);
+        if ($log === true) {
+            createActivityLog('retrieve', $id, 'App\Models\Invoice', 'Invoice');
+        }
+
+        return $invoice;
+    }
+
+    /**
+     * Update invoice status cron.
+     *
+     * @return void
+     */
+    public function updateInvoiceStatusCron()
+    {
+        $invoices = $this->where('status', '!=', 'paid')->get();
+        foreach ($invoices as $invoice) {
+            if ($invoice->due_date < now()) {
+                $invoice->update(['status' => 'overdue']);
+            }
+        }
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'discount'      => 'double',
+            'tax'           => 'double',
+            'total'         => 'double',
+            'currency_rate' => 'double',
+            'date'          => 'datetime',
+            'due_date'      => 'datetime',
+        ];
+    }
+
+    /**
+     * Decrement stock of product when invoice is created or updated.
+     *
      * @param uuid $product_id product id
-     * @param integer $quantity quantity
+     * @param int  $quantity   quantity
+     *
      * @return void
      */
     protected function decrementStock($product_id, $quantity = 0)
@@ -301,9 +386,11 @@ class Invoice extends Model implements Auditable
     }
 
     /**
-     * Increment stock of product when invoice is deleted or updated
+     * Increment stock of product when invoice is deleted or updated.
+     *
      * @param [uuid] $product_id product id
-     * @param integer $quantity quantity
+     * @param int $quantity quantity
+     *
      * @return void
      */
     protected function incrementStock($product_id, $quantity = 0)
@@ -315,63 +402,6 @@ class Invoice extends Model implements Auditable
         if ($product->stock >= $quantity && $product->stock > 0 && $product->type == 'product') {
             $product->stock += $quantity;
             $product->save();
-        }
-    }
-
-    /**
-     * Get invoice number
-     * @return string invoice number
-     */
-    public static function getInvoiceNumber()
-    {
-        $number = generateNextNumber(settings('invoice_number_format'), 'invoice');
-        return $number;
-    }
-
-    /**
-     * Share invoice by unique key
-     * @param UUID $invoice_id
-     * @return string url
-     */
-    public function shareInvoice($invoice_id)
-    {
-        if ($this->find($invoice_id)) {
-            $key = generateExternalKey('invoice', $invoice_id);
-            $url = url('/client/invoice/' . $invoice_id . '?key=' . $key . '&lang=' . app()->getLocale());
-            createActivityLog('share', $invoice_id, 'App\Models\Invoice', 'Invoice');
-            sendWebhookForEvent('invoice:shared', ['invoice_id' => $invoice_id, 'url' => $url]);
-            return $url;
-        }
-        return null;
-    }
-
-    /**
-     * Get client invoice
-     * @param UUID $id - invoice id
-     * @param boolean $log - log activity
-     * @return JSON invoice
-     */
-    public function getClientInvoice($id, $log = false)
-    {
-        $invoice = $this->with('items', 'transactions', 'salesPerson:id,first_name,last_name,email')->find($id);
-        unset($invoice->notes);
-        if ($log === true) {
-            createActivityLog('retrieve', $id, 'App\Models\Invoice', 'Invoice');
-        }
-        return $invoice;
-    }
-
-    /**
-     * Update invoice status cron
-     * @return void
-     */
-    public function updateInvoiceStatusCron()
-    {
-        $invoices = $this->where('status', '!=', 'paid')->get();
-        foreach ($invoices as $invoice) {
-            if ($invoice->due_date < now()) {
-                $invoice->update(['status' => 'overdue']);
-            }
         }
     }
 }

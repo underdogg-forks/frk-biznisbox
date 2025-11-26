@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Currency;
+use Illuminate\Console\Command;
 
 class UpdateCurrencyRate extends Command
 {
@@ -27,7 +27,7 @@ class UpdateCurrencyRate extends Command
     public function handle()
     {
         $currency = new Currency();
-        $result = $currency->liveUpdateCurrencyRate();
+        $result   = $currency->liveUpdateCurrencyRate();
         if ($result['status']) {
             $this->info($result['message']);
         } else {

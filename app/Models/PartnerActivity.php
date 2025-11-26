@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class PartnerActivity extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $fillable = [
         'partner_id',
@@ -32,8 +34,8 @@ class PartnerActivity extends Model implements Auditable
 
     protected $casts = [
         'start_date' => 'datetime',
-        'end_date' => 'datetime',
-        'duration' => 'integer',
+        'end_date'   => 'datetime',
+        'duration'   => 'integer',
     ];
 
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
@@ -62,9 +64,10 @@ class PartnerActivity extends Model implements Auditable
 
     public function getDurationAttribute()
     {
-        if (!$this->start_date || !$this->end_date) {
-            return null;
+        if ( ! $this->start_date || ! $this->end_date) {
+            return;
         }
+
         return $this->start_date->diffInMinutes($this->end_date);
     }
 
@@ -79,8 +82,8 @@ class PartnerActivity extends Model implements Auditable
     {
         $activity = $this->find($id);
 
-        if (!$activity) {
-            return null;
+        if ( ! $activity) {
+            return;
         }
 
         $is_success = $activity->update($data);
@@ -92,8 +95,8 @@ class PartnerActivity extends Model implements Auditable
     {
         $activity = $this->find($id);
 
-        if (!$activity) {
-            return null;
+        if ( ! $activity) {
+            return;
         }
 
         $is_success = $activity->delete();

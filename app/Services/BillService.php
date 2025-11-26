@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class BillService
 {
     private $billModel;
+
     public function __construct(Bill $billModel)
     {
         $this->billModel = new Bill();
@@ -16,24 +17,28 @@ class BillService
     public function getBills()
     {
         $bills = $this->billModel->getBills();
+
         return $bills;
     }
 
     public function getBill($id)
     {
         $bill = $this->billModel->getBill($id);
+
         return $bill;
     }
 
     public function createBill($data)
     {
         $bill = $this->billModel->createBill($data);
+
         return $bill;
     }
 
     public function updateBill($id, $data)
     {
         $bill = $this->billModel->updateBill($id, $data);
+
         return $bill;
     }
 
@@ -49,7 +54,7 @@ class BillService
 
     public function getBillPdf($id, $type = 'stream')
     {
-        $bill = $this->billModel->getBill($id);
+        $bill     = $this->billModel->getBill($id);
         $settings = settings([
             'company_name',
             'company_address',
@@ -70,10 +75,11 @@ class BillService
         }
         if ($type == 'download') {
             createActivityLog('DownloadBillPdf', $bill->id, 'App\Models\Bill', 'Bill');
+
             return $pdf->download('Bill ' . $bill->number . '.pdf');
-        } else {
-            createActivityLog('ViewBillPdf', $bill->id, 'App\Models\Bill', 'Bill');
-            return $pdf->stream('Bill ' . $bill->number . '.pdf');
         }
+        createActivityLog('ViewBillPdf', $bill->id, 'App\Models\Bill', 'Bill');
+
+        return $pdf->stream('Bill ' . $bill->number . '.pdf');
     }
 }

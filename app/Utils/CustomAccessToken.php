@@ -2,8 +2,8 @@
 
 namespace App\Utils;
 
-use Laravel\Passport\Bridge\AccessToken;
 use App\Helpers\CustomClaimsAccessTokenTrait;
+use Laravel\Passport\Bridge\AccessToken;
 
 class CustomAccessToken extends AccessToken
 {

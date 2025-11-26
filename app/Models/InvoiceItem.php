@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class InvoiceItem extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'invoice_items';
@@ -33,17 +34,6 @@ class InvoiceItem extends Model implements Auditable
 
     protected $hidden = ['updated_at', 'created_at'];
 
-    protected function casts(): array
-    {
-        return [
-            'quantity' => 'integer',
-            'price' => 'double',
-            'discount' => 'double',
-            'tax' => 'double',
-            'total' => 'double',
-        ];
-    }
-
     public function generateTags(): array
     {
         return ['InvoiceItem'];
@@ -57,5 +47,16 @@ class InvoiceItem extends Model implements Auditable
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'price'    => 'double',
+            'discount' => 'double',
+            'tax'      => 'double',
+            'total'    => 'double',
+        ];
     }
 }

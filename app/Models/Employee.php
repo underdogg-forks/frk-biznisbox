@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Employee extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $fillable = [
         'department_id',
@@ -39,22 +41,21 @@ class Employee extends Model implements Auditable
 
     protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
 
-    protected function casts(): array
+    protected $appends = ['full_name'];
+
+    protected $dates = ['contract_start_date', 'contract_end_date', 'deleted_at', 'updated_at', 'created_at'];
+
+    public static function getEmployeeNumber()
     {
-        return [
-            'contract_start_date' => 'date',
-            'contract_end_date' => 'date',
-        ];
+        $number = generateNextNumber(settings('employee_number_format'), 'employee');
+
+        return $number;
     }
 
     public function generateTags(): array
     {
         return ['Employee'];
     }
-
-    protected $appends = ['full_name'];
-
-    protected $dates = ['contract_start_date', 'contract_end_date', 'deleted_at', 'updated_at', 'created_at'];
 
     public function department()
     {
@@ -74,9 +75,10 @@ class Employee extends Model implements Auditable
     public function createEmployee($data)
     {
         $data['number'] = self::getEmployeeNumber();
-        $employee = $this->create($data);
+        $employee       = $this->create($data);
         incrementLastItemNumber('employee');
         sendWebhookForEvent('employee:created', $employee->toArray());
+
         return $employee;
     }
 
@@ -87,6 +89,7 @@ class Employee extends Model implements Auditable
             $employee->update($data);
         }
         sendWebhookForEvent('employee:updated', $employee->toArray());
+
         return $employee;
     }
 
@@ -94,6 +97,7 @@ class Employee extends Model implements Auditable
     {
         $employee = $this->where('id', $id)->delete();
         sendWebhookForEvent('employee:deleted', ['id' => $id]);
+
         return $employee;
     }
 
@@ -101,6 +105,7 @@ class Employee extends Model implements Auditable
     {
         $employee = $this->with('user')->where('id', $id)->first();
         createActivityLog('retrieve', $id, 'App\Models\Employee', 'Employee');
+
         return $employee;
     }
 
@@ -108,13 +113,8 @@ class Employee extends Model implements Auditable
     {
         $employees = $this->get();
         createActivityLog('retrieve', null, 'App\Models\Employee', 'Employee');
-        return $employees;
-    }
 
-    public static function getEmployeeNumber()
-    {
-        $number = generateNextNumber(settings('employee_number_format'), 'employee');
-        return $number;
+        return $employees;
     }
 
     public function getPublicEmployees()
@@ -124,6 +124,15 @@ class Employee extends Model implements Auditable
             $employee->label = $employee->first_name . ' ' . $employee->last_name . ' (' . $employee->email . ')';
         }
         createActivityLog('retrievePublic', null, 'App\Models\Employee', 'Employee');
+
         return $employees;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'contract_start_date' => 'date',
+            'contract_end_date'   => 'date',
+        ];
     }
 }

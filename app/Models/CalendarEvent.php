@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class CalendarEvent extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $table = 'calendar_events';
 
@@ -34,23 +36,14 @@ class CalendarEvent extends Model implements Auditable
         'privacy',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'start' => 'datetime',
-            'end' => 'datetime',
-            'all_day' => 'boolean',
-        ];
-    }
+    protected $dates = ['deleted_at', 'updated_at', 'created_at, start, end'];
+
+    protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
 
     public function generateTags(): array
     {
         return ['CalendarEvent'];
     }
-
-    protected $dates = ['deleted_at', 'updated_at', 'created_at, start, end'];
-
-    protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
 
     public function user()
     {
@@ -73,10 +66,12 @@ class CalendarEvent extends Model implements Auditable
     }
 
     /**
-     * Get all events
+     * Get all events.
+     *
      * @param string $user_id
      * @param string $start
      * @param string $end
+     *
      * @return array
      */
     public function getEventsByUser($user_id = null, $start = null, $end = null)
@@ -85,7 +80,7 @@ class CalendarEvent extends Model implements Auditable
             $user_id = auth()->id();
         }
         $all_events = [];
-        $query = $this->where('user_id', $user_id);
+        $query      = $this->where('user_id', $user_id);
         if ($start != null || $end != null) {
             $query->whereBetween('start', [$start, $end]);
         }
@@ -94,12 +89,15 @@ class CalendarEvent extends Model implements Auditable
             $all_events[] = self::eventFormat($event);
         }
         createActivityLog('retrieve', null, 'App\Models\CalendarEvent', 'CalendarEvent');
+
         return $all_events;
     }
 
     /**
-     * Create an event
+     * Create an event.
+     *
      * @param array $data
+     *
      * @return object
      */
     public function createEvent($data)
@@ -111,13 +109,16 @@ class CalendarEvent extends Model implements Auditable
         if (isset($data['attendees'])) {
             $event->attendees()->createMany($data['attendees']);
         }
+
         return $event;
     }
 
     /**
-     * Update an event
-     * @param array $data
+     * Update an event.
+     *
+     * @param array  $data
      * @param string $id
+     *
      * @return object
      */
     public function updateEvent($id, $data)
@@ -129,12 +130,15 @@ class CalendarEvent extends Model implements Auditable
             $event->attendees()->delete();
             $event->attendees()->createMany($data['attendees']);
         }
+
         return $event;
     }
 
     /**
-     * Delete an event
+     * Delete an event.
+     *
      * @param string $id
+     *
      * @return object
      */
     public function deleteEvent($id)
@@ -142,37 +146,53 @@ class CalendarEvent extends Model implements Auditable
         $event = $this->where('user_id', auth()->id())->where('id', $id)->firstOrFail();
         $event->attendees()->delete();
         $event->delete();
+
         return $event;
     }
 
     /**
-     * Get a single event
+     * Get a single event.
+     *
      * @param string $id
+     *
      * @return object
      */
     public function getEvent($id)
     {
         $event = $this->where('user_id', auth()->id())->where('id', $id)->with('attendees')->firstOrFail();
         createActivityLog('retrieve', $event->id, 'App\Models\CalendarEvent', 'CalendarEvent');
+
         return $event;
     }
 
+    protected function casts(): array
+    {
+        return [
+            'start'   => 'datetime',
+            'end'     => 'datetime',
+            'all_day' => 'boolean',
+        ];
+    }
+
     /**
-     * Format the event data -> FullCalendar
+     * Format the event data -> FullCalendar.
+     *
      * @param object $data
+     *
      * @return void
      */
     private function eventFormat($data)
     {
-        $event = [];
-        $event['id'] = $data->id;
-        $event['title'] = $data->title;
-        $event['start'] = $data->start;
-        $event['end'] = $data->end;
-        $event['allDay'] = $data->all_day;
+        $event                = [];
+        $event['id']          = $data->id;
+        $event['title']       = $data->title;
+        $event['start']       = $data->start;
+        $event['end']         = $data->end;
+        $event['allDay']      = $data->all_day;
         $event['description'] = $data->description;
-        $event['color'] = $data->color;
-        $event['rrule'] = $data->rrule;
+        $event['color']       = $data->color;
+        $event['rrule']       = $data->rrule;
+
         return $event;
     }
 }

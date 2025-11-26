@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class OpenBanking extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'open_banking';
+
     protected $fillable = [
         'bank_id',
         'iban',
@@ -30,7 +32,7 @@ class OpenBanking extends Model implements Auditable
 
     protected $casts = [
         'connection_valid_until' => 'datetime',
-        'last_transaction_sync' => 'datetime',
+        'last_transaction_sync'  => 'datetime',
     ];
 
     protected $hidden = ['id', 'created_at', 'updated_at', 'agreement_id', 'requisition_id'];

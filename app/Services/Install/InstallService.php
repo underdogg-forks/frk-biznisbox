@@ -2,28 +2,30 @@
 
 namespace App\Services\Install;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
 use App\Models\User;
+use Exception;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use PDO;
 
 class InstallService
 {
     public function createConnection($data)
     {
-        $driver = $data['driver'];
-        $host = $data['host'];
-        $port = $data['port'];
+        $driver   = $data['driver'];
+        $host     = $data['host'];
+        $port     = $data['port'];
         $database = $data['database'];
         $username = $data['username'];
         $password = $data['password'];
 
         config([
             'database.connections.' . $driver => [
-                'driver' => $driver,
-                'host' => $host,
-                'port' => $port,
+                'driver'   => $driver,
+                'host'     => $host,
+                'port'     => $port,
                 'database' => $database,
                 'username' => $username,
                 'password' => $password,
@@ -37,33 +39,34 @@ class InstallService
     {
         try {
             $check = false;
-            $pdo = $this->createConnection($data)->getPdo();
+            $pdo   = $this->createConnection($data)->getPdo();
 
-            $version = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION);
+            $version = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
 
             // Check if the database is empty
-            $tables = $pdo->query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN);
+            $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
 
             if (count($tables) > 0) {
                 $check = [
-                    'status' => false,
+                    'status'  => false,
                     'message' => __('responses.install_database_is_not_empty'),
-                    'error' => __('responses.install_database_is_not_empty'),
+                    'error'   => __('responses.install_database_is_not_empty'),
                 ];
             } else {
                 $check = [
-                    'status' => true,
+                    'status'  => true,
                     'message' => __('responses.install_database_connection_successful'),
                     'version' => $version,
                 ];
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $check = [
-                'status' => false,
+                'status'  => false,
                 'message' => __('responses.install_database_connection_failed'),
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ];
         }
+
         return $check;
     }
 
@@ -71,17 +74,17 @@ class InstallService
     {
         $data = [
             'DB_CONNECTION' => $data['driver'],
-            'DB_HOST' => $data['host'],
-            'DB_PORT' => $data['port'],
-            'DB_DATABASE' => $data['database'],
-            'DB_USERNAME' => $data['username'],
-            'DB_PASSWORD' => $data['password'],
+            'DB_HOST'       => $data['host'],
+            'DB_PORT'       => $data['port'],
+            'DB_DATABASE'   => $data['database'],
+            'DB_USERNAME'   => $data['username'],
+            'DB_PASSWORD'   => $data['password'],
         ];
 
         writeInEnvFile($data);
 
         return [
-            'status' => true,
+            'status'  => true,
             'message' => __('responses.install_database_connection_saved'),
         ];
     }
@@ -94,12 +97,10 @@ class InstallService
                 '--force' => true,
             ]);
 
-            if ($migration === 0) {
-                return true;
-            }
-            return false;
-        } catch (\Exception $e) {
+            return (bool) ($migration === 0);
+        } catch (Exception $e) {
             Log::error($e->getMessage());
+
             return false;
         }
     }
@@ -113,12 +114,10 @@ class InstallService
                 '--force' => true,
             ]);
 
-            if ($seeder == 0) {
-                return true;
-            }
-            return false;
-        } catch (\Exception $e) {
+            return (bool) ($seeder == 0);
+        } catch (Exception $e) {
             Log::error($e->getMessage());
+
             return false;
         }
     }
@@ -152,7 +151,7 @@ class InstallService
         ];
 
         foreach ($requiredExtensions as $extension) {
-            if (!extension_loaded($extension)) {
+            if ( ! extension_loaded($extension)) {
                 $requirements['php_extensions'][$extension] = false;
             } else {
                 $requirements['php_extensions'][$extension] = true;
@@ -160,23 +159,23 @@ class InstallService
         }
 
         // Check file permissions
-        if (!is_writable(base_path('storage'))) {
+        if ( ! is_writable(base_path('storage'))) {
             $requirements['storage_permissions'] = false;
         } else {
             $requirements['storage_permissions'] = true;
         }
 
-        if (!is_writable(base_path('bootstrap/cache'))) {
+        if ( ! is_writable(base_path('bootstrap/cache'))) {
             $requirements['bootstrap_cache_permissions'] = false;
         } else {
             $requirements['bootstrap_cache_permissions'] = true;
         }
 
-        if (!$this->checkEnvFile()) {
+        if ( ! $this->checkEnvFile()) {
             $this->createEnvFile();
         }
 
-        if (!is_writable(base_path('.env'))) {
+        if ( ! is_writable(base_path('.env'))) {
             $requirements['env_permissions'] = false;
         } else {
             $requirements['env_permissions'] = true;
@@ -188,15 +187,13 @@ class InstallService
     public function checkEnvFile()
     {
         $envFile = base_path('.env');
-        if (file_exists($envFile)) {
-            return true;
-        }
-        return false;
+
+        return (bool) (file_exists($envFile));
     }
 
     public function createEnvFile()
     {
-        $envFile = base_path('.env.example');
+        $envFile    = base_path('.env.example');
         $newEnvFile = base_path('.env');
         if (file_exists($envFile)) {
             copy($envFile, $newEnvFile);
@@ -207,7 +204,7 @@ class InstallService
     {
         Artisan::call('cache:clear');
         $migration = $this->migrateDb();
-        $seeder = $this->seedDb();
+        $seeder    = $this->seedDb();
 
         if ($migration && $seeder) {
             Artisan::call('db:seed', [
@@ -218,13 +215,15 @@ class InstallService
             writeInEnvFile([
                 'CACHE_STORE' => 'database',
             ]);
+
             return [
-                'status' => true,
+                'status'  => true,
                 'message' => __('responses.install_migration_and_seeding_successful'),
             ];
         }
+
         return [
-            'status' => false,
+            'status'  => false,
             'message' => __('responses.install_migration_and_seeding_failed'),
         ];
     }
@@ -232,7 +231,7 @@ class InstallService
     public function setAppInstalled()
     {
         // Create install.lock file
-        if (!file_exists(base_path('install.lock'))) {
+        if ( ! file_exists(base_path('install.lock'))) {
             $file = fopen(base_path('install.lock'), 'w');
             fclose($file);
         }
@@ -247,7 +246,7 @@ class InstallService
         ]);
 
         return [
-            'status' => true,
+            'status'  => true,
             'message' => __('responses.install_jwt_secret_generated'),
         ];
     }
@@ -257,7 +256,7 @@ class InstallService
         settings($data, 'set');
 
         return [
-            'status' => true,
+            'status'  => true,
             'message' => __('responses.data_saved_successfully'),
         ];
     }
@@ -266,10 +265,10 @@ class InstallService
     {
         $user = User::create([
             'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'role' => 'super_admin',
+            'last_name'  => $data['last_name'],
+            'email'      => $data['email'],
+            'password'   => $data['password'],
+            'role'       => 'super_admin',
         ]);
         $user->assignRole('super_admin');
         $user->generateUserAvatar($user->id, $data['first_name'], $data['last_name']);
@@ -281,7 +280,7 @@ class InstallService
         Artisan::call('cache:clear');
 
         return [
-            'status' => true,
+            'status'  => true,
             'message' => __('responses.install_admin_user_created'),
         ];
     }
@@ -290,12 +289,13 @@ class InstallService
     {
         if (isAppInstalled()) {
             return [
-                'status' => true,
+                'status'  => true,
                 'message' => __('responses.app_installed'),
             ];
         }
+
         return [
-            'status' => false,
+            'status'  => false,
             'message' => __('responses.app_not_installed'),
         ];
     }

@@ -2,10 +2,10 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -88,27 +88,27 @@ return new class extends Migration {
         $data = [
             [
                 'migration' => '2020_07_07_055656_create_countries_table',
-                'batch' => 1,
+                'batch'     => 1,
             ],
             [
                 'migration' => '2020_07_07_055725_create_cities_table',
-                'batch' => 1,
+                'batch'     => 1,
             ],
             [
                 'migration' => '2020_07_07_055746_create_timezones_table',
-                'batch' => 1,
+                'batch'     => 1,
             ],
             [
                 'migration' => '2021_10_19_071730_create_states_table',
-                'batch' => 1,
+                'batch'     => 1,
             ],
             [
                 'migration' => '2021_10_23_082414_create_currencies_table',
-                'batch' => 1,
+                'batch'     => 1,
             ],
             [
                 'migration' => '2022_01_22_034939_create_languages_table',
-                'batch' => 1,
+                'batch'     => 1,
             ],
         ];
 

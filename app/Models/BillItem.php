@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class BillItem extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'bill_items';
+
     protected $fillable = [
         'bill_id',
         'product_id',
@@ -30,10 +32,10 @@ class BillItem extends Model implements Auditable
 
     protected $casts = [
         'quantity' => 'double',
-        'price' => 'double',
-        'tax' => 'double',
+        'price'    => 'double',
+        'tax'      => 'double',
         'discount' => 'double',
-        'total' => 'double',
+        'total'    => 'double',
     ];
 
     protected $dates = ['deleted_at', 'updated_at', 'created_at'];

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\SupportTicketService;
+use Illuminate\Http\Request;
 
 class SupportTicketController extends Controller
 {
@@ -20,6 +20,7 @@ class SupportTicketController extends Controller
         if ($tickets) {
             return api_response($tickets, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 400);
     }
 
@@ -29,6 +30,7 @@ class SupportTicketController extends Controller
         if ($ticket) {
             return api_response($ticket, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found_with_id'), 404);
     }
 
@@ -38,26 +40,29 @@ class SupportTicketController extends Controller
         if ($contents) {
             return api_response($contents, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 400);
     }
 
     public function createTicket(Request $request)
     {
-        $data = $request->all();
+        $data   = $request->all();
         $ticket = $this->supportTicketService->createTicket($data);
         if ($ticket) {
             return api_response($ticket, __('responses.item_created_successfully'));
         }
+
         return api_response(null, __('responses.item_not_created'), 400);
     }
 
     public function updateTicket(Request $request, $id)
     {
-        $data = $request->all();
+        $data   = $request->all();
         $ticket = $this->supportTicketService->updateSupportTicket($id, $data);
         if ($ticket) {
             return api_response($ticket, __('responses.item_updated_successfully'));
         }
+
         return api_response(null, __('responses.item_not_updated'), 400);
     }
 
@@ -67,6 +72,7 @@ class SupportTicketController extends Controller
         if ($ticket) {
             return api_response($ticket, __('responses.item_deleted_successfully'));
         }
+
         return api_response(null, __('responses.item_not_deleted'), 400);
     }
 
@@ -76,26 +82,29 @@ class SupportTicketController extends Controller
         if ($messages) {
             return api_response($messages, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 400);
     }
 
     public function createTicketMessage(Request $request, $id)
     {
-        $data = $request->all();
+        $data    = $request->all();
         $message = $this->supportTicketService->createTicketMessage($id, $data);
         if ($message) {
             return api_response($message, __('responses.item_created_successfully'));
         }
+
         return api_response(null, __('responses.item_not_created'), 400);
     }
 
     public function updateTicketMessage(Request $request, $id)
     {
-        $data = $request->all();
+        $data    = $request->all();
         $message = $this->supportTicketService->updateTicketMessage($id, $data);
         if ($message) {
             return api_response($message, __('responses.item_updated_successfully'));
         }
+
         return api_response(null, __('responses.item_not_updated'), 400);
     }
 
@@ -105,6 +114,7 @@ class SupportTicketController extends Controller
         if ($message) {
             return api_response($message, __('responses.item_deleted_successfully'));
         }
+
         return api_response(null, __('responses.item_not_deleted'), 400);
     }
 
@@ -114,6 +124,7 @@ class SupportTicketController extends Controller
         if ($number) {
             return api_response($number, __('responses.data_retrieved_successfully'));
         }
+
         return api_response(null, __('responses.item_not_found'), 400);
     }
 
@@ -123,6 +134,7 @@ class SupportTicketController extends Controller
         if ($ticket) {
             return api_response($ticket, __('responses.item_shared_successfully'));
         }
+
         return api_response(null, __('responses.item_not_shared'), 400);
     }
 }

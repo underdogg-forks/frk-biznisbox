@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\DataService;
+use Illuminate\Http\Request;
 
 class DataController extends Controller
 {
@@ -42,7 +42,7 @@ class DataController extends Controller
                 return $this->dataService->getCurrencies();
                 break;
             default:
-                return null;
+                return;
                 break;
         }
     }
@@ -51,14 +51,16 @@ class DataController extends Controller
     {
         $type = $request->input('type');
         $data = $this->returnData($type);
+
         return api_response($data, __('responses.data_retrieved_successfully'));
     }
 
     public function getDashboardData(Request $request)
     {
         $dashboardService = new \App\Services\DashboardDataService();
-        $type = $request->input('type');
-        $data = $dashboardService->returnData($type);
+        $type             = $request->input('type');
+        $data             = $dashboardService->returnData($type);
+
         return api_response($data, __('responses.data_retrieved_successfully'));
     }
 
@@ -68,9 +70,10 @@ class DataController extends Controller
 
     public function getLogs(Request $request)
     {
-        $item_id = $request->input('item_id');
+        $item_id   = $request->input('item_id');
         $item_type = $request->input('item_type');
-        $data = $this->dataService->getLogs($item_id, $item_type);
+        $data      = $this->dataService->getLogs($item_id, $item_type);
+
         return api_response($data, __('responses.data_retrieved_successfully'));
     }
 
@@ -81,45 +84,50 @@ class DataController extends Controller
     public function getCategories(Request $request)
     {
         $module = $request->input('module');
-        $data = $this->dataService->getCategories($module);
+        $data   = $this->dataService->getCategories($module);
+
         return api_response($data, __('responses.data_retrieved_successfully'));
     }
 
     public function createCategory(Request $request)
     {
-        $data = $request->all();
+        $data     = $request->all();
         $category = $this->dataService->createCategory($data);
-        if (!$category) {
+        if ( ! $category) {
             return api_response($category, __('responses.item_not_created'), 400);
         }
+
         return api_response($category, __('responses.item_created_successfully'));
     }
 
     public function updateCategory($id, Request $request)
     {
-        $data = $request->all();
+        $data     = $request->all();
         $category = $this->dataService->updateCategory($id, $data);
-        if (!$category) {
+        if ( ! $category) {
             return api_response($category, __('responses.item_not_updated'), 400);
         }
+
         return api_response($category, __('responses.item_updated_successfully'));
     }
 
     public function deleteCategory($id)
     {
         $category = $this->dataService->deleteCategory($id);
-        if (!$category) {
+        if ( ! $category) {
             return api_response($category, __('responses.item_not_deleted'), 400);
         }
+
         return api_response($category, __('responses.item_deleted_successfully'));
     }
 
     public function getCategory($id)
     {
         $category = $this->dataService->getCategory($id);
-        if (!$category) {
+        if ( ! $category) {
             return api_response($category, __('responses.item_not_found_with_id'), 404);
         }
+
         return api_response($category, __('responses.data_retrieved_successfully'));
     }
 
@@ -129,15 +137,16 @@ class DataController extends Controller
 
     public function getDashboardLayout(Request $request)
     {
-        $type = $request->input('type') ?? 'user';
+        $type   = $request->input('type') ?? 'user';
         $layout = $this->dataService->getDashboardLayout($type);
+
         return api_response($layout, __('responses.data_retrieved_successfully'));
     }
 
     public function updateDashboardLayout(Request $request)
     {
         $layout = $request->layout;
-        $type = $request->type ?? 'user';
+        $type   = $request->type ?? 'user';
 
         $this->dataService->updateDashboardLayout($layout, $type);
 
@@ -149,11 +158,12 @@ class DataController extends Controller
      ***********************************/
     public function createWebhookSubscription(Request $request)
     {
-        $data = $request->all();
+        $data                = $request->all();
         $webhookSubscription = $this->dataService->createWebhookSubscription($data);
-        if (!$webhookSubscription) {
+        if ( ! $webhookSubscription) {
             return api_response($webhookSubscription, __('responses.item_not_created'), 400);
         }
+
         return api_response($webhookSubscription, __('responses.item_created_successfully'));
     }
 }

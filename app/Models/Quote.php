@@ -2,19 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use OwenIt\Auditing\Contracts\Auditable;
 use Illuminate\Support\Facades\URL;
+use OwenIt\Auditing\Contracts\Auditable;
 
 class Quote extends Model implements Auditable
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $table = 'quotes';
+
     protected $fillable = [
         'customer_id',
         'payer_id',
@@ -54,17 +57,13 @@ class Quote extends Model implements Auditable
 
     protected $appends = ['preview', 'download'];
 
-    protected function casts(): array
+    public static function getQuoteNumber()
     {
-        return [
-            'discount' => 'double',
-            'tax' => 'double',
-            'total' => 'double',
-            'currency_rate' => 'double',
-            'valid_until' => 'datetime',
-            'date' => 'datetime',
-        ];
+        $number = generateNextNumber(settings('quote_number_format'), 'quote');
+
+        return $number;
     }
+
     public function generateTags(): array
     {
         return ['Quote'];
@@ -93,7 +92,7 @@ class Quote extends Model implements Auditable
     public function getPreviewAttribute()
     {
         return URL::signedRoute('getQuotePdf', [
-            'id' => $this->id,
+            'id'   => $this->id,
             'type' => 'preview',
         ]);
     }
@@ -101,7 +100,7 @@ class Quote extends Model implements Auditable
     public function getDownloadAttribute()
     {
         return URL::signedRoute('getQuotePdf', [
-            'id' => $this->id,
+            'id'   => $this->id,
             'type' => 'download',
         ]);
     }
@@ -110,16 +109,17 @@ class Quote extends Model implements Auditable
     {
         $quotes = $this->with('items')->get();
         createActivityLog('retrieve', null, 'App\Models\Quote', 'Quote');
+
         return $quotes;
     }
 
     public function createQuote($data)
     {
-        $data = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
-        $data = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
+        $data                     = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
+        $data                     = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
         $data['default_currency'] = settings('default_currency');
-        $data['number'] = $this->getQuoteNumber();
-        $quote = $this->create($data);
+        $data['number']           = $this->getQuoteNumber();
+        $quote                    = $this->create($data);
         if ($quote) {
             if (isset($data['items'])) {
                 foreach ($data['items'] as $item) {
@@ -127,20 +127,21 @@ class Quote extends Model implements Auditable
                     $quote->items()->create($item);
                 }
             }
-            $items = $quote->items()->get();
-            $total = calculateTotalHelper($items, $quote['discount'], $quote['discount_type'], $quote['currency_rate']);
+            $items        = $quote->items()->get();
+            $total        = calculateTotalHelper($items, $quote['discount'], $quote['discount_type'], $quote['currency_rate']);
             $quote->total = $total;
             $quote->save();
             incrementLastItemNumber('quote');
             sendWebhookForEvent('quote:created', $quote->toArray());
+
             return $quote;
         }
     }
 
     public function updateQuote($id, $data)
     {
-        $data = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
-        $data = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
+        $data  = setPayerData($data, $data['payer_id'], $data['payer_address_id']);
+        $data  = setCustomerData($data, $data['customer_id'], $data['customer_address_id']);
         $quote = $this->find($id);
 
         $quote = $quote->update($data);
@@ -159,11 +160,12 @@ class Quote extends Model implements Auditable
                     }
                 }
             }
-            $items = $quote->items()->get();
-            $total = calculateTotalHelper($items, $quote['discount'], $quote['discount_type'], $quote['currency_rate']);
+            $items        = $quote->items()->get();
+            $total        = calculateTotalHelper($items, $quote['discount'], $quote['discount_type'], $quote['currency_rate']);
             $quote->total = $total;
             $quote->save();
             sendWebhookForEvent('quote:updated', $quote->toArray());
+
             return $quote;
         }
     }
@@ -174,6 +176,7 @@ class Quote extends Model implements Auditable
         $quote->items()->delete();
         $quote->delete();
         sendWebhookForEvent('quote:deleted', $quote->toArray());
+
         return $quote;
     }
 
@@ -181,13 +184,8 @@ class Quote extends Model implements Auditable
     {
         $quote = $this->with('items')->find($id);
         createActivityLog('retrieve', $id, 'App\Models\Quote', 'Quote');
-        return $quote;
-    }
 
-    public static function getQuoteNumber()
-    {
-        $number = generateNextNumber(settings('quote_number_format'), 'quote');
-        return $number;
+        return $quote;
     }
 
     public function convertQuoteToInvoice($id)
@@ -197,7 +195,7 @@ class Quote extends Model implements Auditable
         $quote->status = 'converted';
         $quote->save();
 
-        $invoice = new Invoice();
+        $invoice       = new Invoice();
         $quote->number = Invoice::getInvoiceNumber();
         $quote->status = 'unpaid';
 
@@ -209,6 +207,7 @@ class Quote extends Model implements Auditable
         incrementLastItemNumber('invoice');
         createActivityLog('convert_to_invoice', $id, 'App\Models\Quote', 'Quote');
         sendWebhookForEvent('quote:converted', $invoice->toArray());
+
         return $invoice->id;
     }
 
@@ -223,21 +222,24 @@ class Quote extends Model implements Auditable
 
         if ($update_viewed) {
             if (
-                $quote->status != 'viewed' &&
-                $quote->status != 'accepted' &&
-                $quote->status != 'rejected' &&
-                $quote->status != 'converted'
+                $quote->status != 'viewed'
+                && $quote->status != 'accepted'
+                && $quote->status != 'rejected'
+                && $quote->status != 'converted'
             ) {
                 $quote->status = 'viewed';
                 $quote->save();
             }
         }
+
         return $quote;
     }
 
     /**
-     * Share invoice by unique key
+     * Share invoice by unique key.
+     *
      * @param UUID $invoice_id
+     *
      * @return string url
      */
     public function shareQuote($quote_id)
@@ -247,30 +249,33 @@ class Quote extends Model implements Auditable
             $url = url('/client/quote/' . $quote_id . '?key=' . $key . '&lang=' . app()->getLocale());
             createActivityLog('ShareQuote', $quote_id, 'App\Models\Quote', 'Quote');
             sendWebhookForEvent('quote:shared', ['quote_id' => $quote_id, 'url' => $url]);
+
             return $url;
         }
-        return null;
     }
 
     /**
-     * Quote accept or reject by client
-     * @param UUID $id
-     * @param UUID $status
+     * Quote accept or reject by client.
+     *
+     * @param UUID   $id
+     * @param UUID   $status
      * @param string $key
-     * @return boolean
+     *
+     * @return bool
      */
     public function clientAcceptRejectQuote($id, $status, $key = null)
     {
-        $quote = $this->find($id);
+        $quote         = $this->find($id);
         $quote->status = $status; // accepted or rejected
         $quote->save();
         createActivityLog('AcceptRejectQuoteByClient', $id, 'App\Models\Quote', 'Quote', null, null, 'external', $key);
         sendWebhookForEvent('quote:accepted_rejected', ['quote_id' => $id, 'status' => $status, 'key' => $key]);
+
         return $quote;
     }
 
     /**
-     * Update status of quote cron
+     * Update status of quote cron.
      */
     public function updateQuoteStatusCron()
     {
@@ -281,5 +286,17 @@ class Quote extends Model implements Auditable
                 $quote->save();
             }
         }
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'discount'      => 'double',
+            'tax'           => 'double',
+            'total'         => 'double',
+            'currency_rate' => 'double',
+            'valid_until'   => 'datetime',
+            'date'          => 'datetime',
+        ];
     }
 }

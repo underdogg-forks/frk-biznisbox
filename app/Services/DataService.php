@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\ActivityLog;
+use App\Models\Category;
 use App\Models\Tax;
 use App\Models\Unit;
-use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -25,6 +25,7 @@ class DataService
     {
         $employees = new \App\Models\Employee();
         $employees = $employees->getPublicEmployees();
+
         return $employees;
     }
 
@@ -32,6 +33,7 @@ class DataService
     {
         $users = new \App\Models\User();
         $users = $users->getPublicUsers();
+
         return $users;
     }
 
@@ -39,6 +41,7 @@ class DataService
     {
         $departments = new \App\Models\Department();
         $departments = $departments->getPublicDepartments();
+
         return $departments;
     }
 
@@ -46,24 +49,26 @@ class DataService
     {
         $products = new \App\Models\Product();
         $products = $products->getPublicProducts();
+
         return $products;
     }
 
     public function getAvailableLocales()
     {
         $locales = config('app.available_locales');
+
         return $locales;
     }
 
     public function getLogs($item_id, $item_type)
     {
-        if (!$item_id || !$item_type) {
-            return null;
+        if ( ! $item_id || ! $item_type) {
+            return;
         }
 
         $logs = ActivityLog::where([
             'auditable_type' => 'App\Models\\' . $item_type,
-            'auditable_id' => $item_id,
+            'auditable_id'   => $item_id,
         ])
             ->with('user:id,first_name,last_name,picture,email', 'externalKeyData')
             ->orderBy('id', 'desc')
@@ -89,6 +94,7 @@ class DataService
                 'number_of_decimal',
                 'placement',
             ]);
+
         return $currencies;
     }
 
@@ -99,6 +105,7 @@ class DataService
     {
         $categories = new Category();
         $categories = $categories->getCategoriesByModule($module);
+
         return $categories;
     }
 
@@ -106,21 +113,23 @@ class DataService
     {
         $category = new Category();
         $category = $category->getCategory($id);
+
         return $category;
     }
 
     public function createCategory($categoryData)
     {
-        $category = new Category();
-        $name = $categoryData['name'] ?? null;
-        $module = $categoryData['module'] ?? null;
-        $description = $categoryData['description'] ?? null;
-        $color = $categoryData['color'] ?? null;
-        $parent_id = $categoryData['parent_id'] ?? null;
-        $icon = $categoryData['icon'] ?? null;
+        $category        = new Category();
+        $name            = $categoryData['name'] ?? null;
+        $module          = $categoryData['module'] ?? null;
+        $description     = $categoryData['description'] ?? null;
+        $color           = $categoryData['color'] ?? null;
+        $parent_id       = $categoryData['parent_id'] ?? null;
+        $icon            = $categoryData['icon'] ?? null;
         $additional_info = $categoryData['additional_info'] ?? null;
 
         $category = $category->createCategory($name, $module, $description, $color, $parent_id, $icon, $additional_info);
+
         return $category;
     }
 
@@ -128,6 +137,7 @@ class DataService
     {
         $category = new Category();
         $category = $category->updateCategory($id, $categoryData);
+
         return $category;
     }
 
@@ -135,6 +145,7 @@ class DataService
     {
         $category = new Category();
         $category = $category->deleteCategory($id);
+
         return $category;
     }
 
@@ -146,26 +157,27 @@ class DataService
         $dashboard_layout = DB::table('dashboard')
             ->where([
                 'user_id' => auth()->id(),
-                'type' => $type,
+                'type'    => $type,
             ])
             ->first();
 
-        if (!$dashboard_layout) {
+        if ( ! $dashboard_layout) {
             $dashboard_layout = DB::table('dashboard')->insert([
-                'id' => Str::uuid(),
-                'user_id' => auth()->id(),
-                'content' => '[]',
+                'id'         => Str::uuid(),
+                'user_id'    => auth()->id(),
+                'content'    => '[]',
                 'created_at' => now(),
                 'updated_at' => now(),
-                'type' => $type,
+                'type'       => $type,
             ]);
             $dashboard_layout = DB::table('dashboard')
                 ->where([
                     'user_id' => auth()->id(),
-                    'type' => $type,
+                    'type'    => $type,
                 ])
                 ->first();
         }
+
         return $dashboard_layout;
     }
 
@@ -174,20 +186,22 @@ class DataService
         $dashboard_layout = DB::table('dashboard')
             ->where([
                 'user_id' => auth()->id(),
-                'type' => $type,
+                'type'    => $type,
             ])
             ->update([
-                'content' => $data,
+                'content'    => $data,
                 'updated_at' => now(),
             ]);
+
         return $dashboard_layout;
     }
 
     public function createWebhookSubscription($data)
     {
-        $webhook = new \App\Models\WebhookSubscription();
-        $data['headers'] = $this->formatHeaderForBackend($data['headers']);
-        $webhook->$webhook = $webhook->create($data);
+        $webhook             = new \App\Models\WebhookSubscription();
+        $data['headers']     = $this->formatHeaderForBackend($data['headers']);
+        $webhook->{$webhook} = $webhook->create($data);
+
         return $webhook;
     }
 
@@ -216,7 +230,7 @@ class DataService
                 return $this->getAvailableLocales();
                 break;
             default:
-                return null;
+                return;
                 break;
         }
     }
@@ -227,6 +241,7 @@ class DataService
         foreach ($header as $h) {
             $formattedHeader[$h['key']] = $h['value'];
         }
+
         return $formattedHeader;
     }
 }

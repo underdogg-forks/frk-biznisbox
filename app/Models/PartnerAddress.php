@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class PartnerAddress extends Model implements Auditable
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
 
     protected $table = 'partner_addresses';
@@ -17,13 +18,6 @@ class PartnerAddress extends Model implements Auditable
     protected $fillable = ['partner_id', 'is_primary', 'type', 'address', 'city', 'zip_code', 'country', 'notes'];
 
     protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
-
-    protected function casts(): array
-    {
-        return [
-            'is_primary' => 'boolean',
-        ];
-    }
 
     public function generateTags(): array
     {
@@ -58,5 +52,12 @@ class PartnerAddress extends Model implements Auditable
     public function deletePartnerAddress($id)
     {
         return $this->find($id)->delete();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_primary' => 'boolean',
+        ];
     }
 }

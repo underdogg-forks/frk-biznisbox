@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\OnlinePayment;
-use App\Models\Invoice;
-use App\Models\Transaction;
-use App\Integrations\Stripe;
 use App\Integrations\PayPal;
+use App\Integrations\Stripe;
+use App\Models\Invoice;
+use App\Models\OnlinePayment;
+use App\Models\Transaction;
 
 class OnlinePaymentService
 {
@@ -16,35 +16,35 @@ class OnlinePaymentService
             $invoice,
             [
                 'invoice_id' => $invoice->id,
-                'key' => $key,
+                'key'        => $key,
             ],
             url('/api/online-payment/invoice/stripe?invoice=' . $invoice->id . '&key=' . $key . '&status=success&method=' . $method),
             url('/api/online-payment/invoice/stripe?invoice=' . $invoice->id . '&key=' . $key . '&status=cancel&method=' . $method)
         );
 
         $payment = OnlinePayment::create([
-            'number' => OnlinePayment::getPaymentNumber(),
+            'number'         => OnlinePayment::getPaymentNumber(),
             'payment_method' => 'stripe',
-            'payment_id' => $payment_session->id,
-            'type' => 'online',
-            'amount' => $invoice->total,
-            'currency' => $invoice->currency,
-            'description' => __('Payment for Invoice #:invoice', [
+            'payment_id'     => $payment_session->id,
+            'type'           => 'online',
+            'amount'         => $invoice->total,
+            'currency'       => $invoice->currency,
+            'description'    => __('Payment for Invoice #:invoice', [
                 'invoice' => $invoice->number,
             ]),
-            'status' => 'pending',
-            'payment_response' => $payment_session,
+            'status'                => 'pending',
+            'payment_response'      => $payment_session,
             'payment_document_type' => 'App\Models\Invoice',
-            'payment_document_id' => $invoice->id,
-            'key' => $key,
-            'notes' => 'Payment initiated',
+            'payment_document_id'   => $invoice->id,
+            'key'                   => $key,
+            'notes'                 => 'Payment initiated',
         ]);
 
         incrementLastItemNumber('payment');
 
         return [
-            'payment_id' => $payment->id,
-            'redirect_url' => $payment_session->url, // Redirect to this URL to complete payment
+            'payment_id'      => $payment->id,
+            'redirect_url'    => $payment_session->url, // Redirect to this URL to complete payment
             'payment_session' => $payment_session,
         ];
     }
@@ -52,9 +52,9 @@ class OnlinePaymentService
     public function validateInvoiceStripePayment($payment_id)
     {
         $payment = OnlinePayment::find($payment_id);
-        if (!$payment) {
+        if ( ! $payment) {
             return [
-                'error' => true,
+                'error'   => true,
                 'message' => __('Payment not found'),
             ];
         }
@@ -62,31 +62,31 @@ class OnlinePaymentService
 
         if ($payment_session->payment_status == 'paid' && $payment !== 'paid') {
             $payment->update([
-                'status' => 'paid',
+                'status'           => 'paid',
                 'payment_response' => $payment_session,
-                'payment_ref' => $payment_session->payment_intent,
-                'notes' => 'Payment successful',
+                'payment_ref'      => $payment_session->payment_intent,
+                'notes'            => 'Payment successful',
             ]);
 
             $invoice = Invoice::find($payment->payment_document_id);
             $invoice->update([
-                'status' => 'paid',
+                'status'         => 'paid',
                 'payment_method' => 'stripe',
             ]);
 
             $transaction = Transaction::create([
-                'number' => Transaction::getTransactionNumber(),
-                'invoice_id' => $invoice->id,
-                'customer_id' => $invoice->customer_id,
-                'type' => 'income',
-                'amount' => $payment->amount,
-                'currency' => $payment->currency,
-                'description' => $payment->description,
-                'status' => 'completed',
-                'payment_id' => $payment->id,
-                'notes' => 'Payment successful',
-                'reference' => $payment_session->payment_intent,
-                'date' => date('Y-m-d'),
+                'number'         => Transaction::getTransactionNumber(),
+                'invoice_id'     => $invoice->id,
+                'customer_id'    => $invoice->customer_id,
+                'type'           => 'income',
+                'amount'         => $payment->amount,
+                'currency'       => $payment->currency,
+                'description'    => $payment->description,
+                'status'         => 'completed',
+                'payment_id'     => $payment->id,
+                'notes'          => 'Payment successful',
+                'reference'      => $payment_session->payment_intent,
+                'date'           => date('Y-m-d'),
                 'payment_method' => 'stripe',
             ]);
 
@@ -101,26 +101,26 @@ class OnlinePaymentService
             );
 
             sendWebhookForEvent('online_payment:stripe-received', [
-                'payment_id' => $payment->id,
-                'invoice_id' => $invoice->id,
+                'payment_id'     => $payment->id,
+                'invoice_id'     => $invoice->id,
                 'transaction_id' => $transaction->id,
             ]);
 
             return [
-                'data' => $transaction,
+                'data'    => $transaction,
                 'message' => __('Payment successful'),
             ];
         }
 
         OnlinePayment::where('id', $payment_id)->update([
-            'status' => 'failed',
+            'status'           => 'failed',
             'payment_response' => $payment_session,
-            'notes' => 'Payment failed',
+            'notes'            => 'Payment failed',
         ]);
 
         return [
-            'error' => true,
-            'data' => $payment_session,
+            'error'   => true,
+            'data'    => $payment_session,
             'message' => __('Payment not successful'),
         ];
     }
@@ -131,44 +131,45 @@ class OnlinePaymentService
             $invoice,
             [
                 'invoice_id' => $invoice->id,
-                'key' => $key,
+                'key'        => $key,
             ],
             url('/api/online-payment/invoice/paypal?invoice=' . $invoice->id . '&key=' . $key . '&status=success&method=' . $method),
             url('/api/online-payment/invoice/paypal?invoice=' . $invoice->id . '&key=' . $key . '&status=cancel&method=' . $method)
         );
 
         $payment = OnlinePayment::create([
-            'number' => OnlinePayment::getPaymentNumber(),
+            'number'         => OnlinePayment::getPaymentNumber(),
             'payment_method' => 'paypal',
-            'payment_id' => $payment_session['id'],
-            'type' => 'online',
-            'amount' => $invoice->total,
-            'currency' => $invoice->currency,
-            'description' => __('Payment for Invoice #:invoice', [
+            'payment_id'     => $payment_session['id'],
+            'type'           => 'online',
+            'amount'         => $invoice->total,
+            'currency'       => $invoice->currency,
+            'description'    => __('Payment for Invoice #:invoice', [
                 'invoice' => $invoice->number,
             ]),
-            'status' => 'pending',
-            'payment_response' => $payment_session,
+            'status'                => 'pending',
+            'payment_response'      => $payment_session,
             'payment_document_type' => 'App\Models\Invoice',
-            'payment_document_id' => $invoice->id,
-            'key' => $key,
-            'notes' => 'Payment initiated',
+            'payment_document_id'   => $invoice->id,
+            'key'                   => $key,
+            'notes'                 => 'Payment initiated',
         ]);
 
         incrementLastItemNumber('payment');
 
         return [
-            'payment_id' => $payment['id'],
-            'redirect_url' => $payment_session['links'][1]['href'], // Redirect to this URL to complete payment
+            'payment_id'      => $payment['id'],
+            'redirect_url'    => $payment_session['links'][1]['href'], // Redirect to this URL to complete payment
             'payment_session' => $payment_session,
         ];
     }
 
     /**
-     * Validate PayPal payment
+     * Validate PayPal payment.
      *
-     * @param string $payment_id  Payment ID from PayPal
-     * @param string $payer_id  Payer ID from PayPal
+     * @param string $payment_id Payment ID from PayPal
+     * @param string $payer_id   Payer ID from PayPal
+     *
      * @return void
      */
     public function validateInvoicePayPalPayment($payment_id, $payer_id)
@@ -178,31 +179,31 @@ class OnlinePaymentService
         if ($payment['status'] == 'success') {
             $online_payment = OnlinePayment::where('payment_id', $payment_id)->latest()->first();
             $online_payment->update([
-                'status' => 'paid',
+                'status'           => 'paid',
                 'payment_response' => $payment['payment_response'],
-                'payment_ref' => $payment['payment_response']['id'],
-                'notes' => 'Payment successful',
+                'payment_ref'      => $payment['payment_response']['id'],
+                'notes'            => 'Payment successful',
             ]);
 
             $invoice = Invoice::find($online_payment->payment_document_id);
             $invoice->update([
-                'status' => 'paid',
+                'status'         => 'paid',
                 'payment_method' => 'paypal',
             ]);
 
             $transaction = Transaction::create([
-                'number' => Transaction::getTransactionNumber(),
-                'invoice_id' => $invoice->id,
-                'customer_id' => $invoice->customer_id,
-                'type' => 'income',
-                'amount' => $online_payment->amount,
-                'currency' => $online_payment->currency,
-                'description' => $online_payment->description,
-                'status' => 'completed',
-                'payment_id' => $online_payment->id,
-                'notes' => 'Payment successful',
-                'reference' => $payment['payment_response']['id'],
-                'date' => date('Y-m-d'),
+                'number'         => Transaction::getTransactionNumber(),
+                'invoice_id'     => $invoice->id,
+                'customer_id'    => $invoice->customer_id,
+                'type'           => 'income',
+                'amount'         => $online_payment->amount,
+                'currency'       => $online_payment->currency,
+                'description'    => $online_payment->description,
+                'status'         => 'completed',
+                'payment_id'     => $online_payment->id,
+                'notes'          => 'Payment successful',
+                'reference'      => $payment['payment_response']['id'],
+                'date'           => date('Y-m-d'),
                 'payment_method' => 'paypal',
             ]);
 
@@ -217,13 +218,13 @@ class OnlinePaymentService
             );
 
             sendWebhookForEvent('online_payment:paypal-received', [
-                'payment_id' => $online_payment->id,
-                'invoice_id' => $invoice->id,
+                'payment_id'     => $online_payment->id,
+                'invoice_id'     => $invoice->id,
                 'transaction_id' => $transaction->id,
             ]);
 
             return [
-                'data' => $transaction,
+                'data'    => $transaction,
                 'message' => __('Payment successful'),
             ];
         }

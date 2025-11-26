@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use OwenIt\Auditing\Contracts\Auditable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use OwenIt\Auditing\Contracts\Auditable;
 
 class OnlinePayment extends Model implements Auditable
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory;
+    use HasUuids;
     use \OwenIt\Auditing\Auditable;
+    use SoftDeletes;
 
     protected $fillable = [
         'number',
@@ -30,12 +32,16 @@ class OnlinePayment extends Model implements Auditable
         'notes',
     ];
 
-    protected function casts(): array
+    /**
+     * Get payment number.
+     *
+     * @return string payment number
+     */
+    public static function getPaymentNumber()
     {
-        return [
-            'payment_response' => 'array',
-            'amount' => 'double',
-        ];
+        $number = generateNextNumber(settings('payment_number_format'), 'payment');
+
+        return $number;
     }
 
     public function payment_document()
@@ -43,13 +49,11 @@ class OnlinePayment extends Model implements Auditable
         return $this->morphTo();
     }
 
-    /**
-     * Get payment number
-     * @return string payment number
-     */
-    public static function getPaymentNumber()
+    protected function casts(): array
     {
-        $number = generateNextNumber(settings('payment_number_format'), 'payment');
-        return $number;
+        return [
+            'payment_response' => 'array',
+            'amount'           => 'double',
+        ];
     }
 }

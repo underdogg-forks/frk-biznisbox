@@ -25,8 +25,8 @@ return [
 
     'user' => [
         'morph_prefix' => 'user',
-        'guards' => ['web', 'api'],
-        'resolver' => OwenIt\Auditing\Resolvers\UserResolver::class,
+        'guards'       => ['web', 'api'],
+        'resolver'     => OwenIt\Auditing\Resolvers\UserResolver::class,
     ],
 
     /*
@@ -40,7 +40,7 @@ return [
     'resolvers' => [
         'ip_address' => OwenIt\Auditing\Resolvers\IpAddressResolver::class,
         'user_agent' => OwenIt\Auditing\Resolvers\UserAgentResolver::class,
-        'url' => OwenIt\Auditing\Resolvers\UrlResolver::class,
+        'url'        => OwenIt\Auditing\Resolvers\UrlResolver::class,
     ],
 
     /*
@@ -92,7 +92,7 @@ return [
     |
     */
 
-    'empty_values' => true,
+    'empty_values'         => true,
     'allowed_empty_values' => ['retrieved'],
 
     /*
@@ -140,7 +140,7 @@ return [
 
     'drivers' => [
         'database' => [
-            'table' => 'activity_log',
+            'table'      => 'activity_log',
             'connection' => null,
         ],
     ],
@@ -155,10 +155,10 @@ return [
     */
 
     'queue' => [
-        'enable' => false,
+        'enable'     => false,
         'connection' => 'sync',
-        'queue' => 'default',
-        'delay' => 0,
+        'queue'      => 'default',
+        'delay'      => 0,
     ],
 
     /*

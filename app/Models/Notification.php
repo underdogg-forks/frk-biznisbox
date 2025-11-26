@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Notification extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+    use HasUuids;
 
     protected $fillable = ['user_id', 'title', 'content', 'type', 'is_read', 'action_text', 'action_url'];
 
@@ -36,12 +37,12 @@ class Notification extends Model
     public function createNotification($user_id, $title, $content, $type = 'info', $action_text = null, $action_url = null)
     {
         return $this->create([
-            'user_id' => $user_id ?? null,
-            'title' => $title,
-            'content' => $content,
-            'type' => $type,
+            'user_id'     => $user_id ?? null,
+            'title'       => $title,
+            'content'     => $content,
+            'type'        => $type,
             'action_text' => $action_text,
-            'action_url' => $action_url,
+            'action_url'  => $action_url,
         ]);
     }
 

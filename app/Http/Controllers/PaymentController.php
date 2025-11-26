@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\PaymentService;
+use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
@@ -17,12 +17,14 @@ class PaymentController extends Controller
     public function getPayments()
     {
         $payments = $this->paymentService->getPayments();
+
         return api_response($payments, __('responses.data_retrieved_successfully'));
     }
 
     public function getPayment(Request $request, $id)
     {
         $payment = $this->paymentService->getPayment($id);
+
         return api_response($payment, __('responses.data_retrieved_successfully'));
     }
 }

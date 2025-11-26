@@ -23,14 +23,15 @@ class DashboardDataService
             ->where('created_at', '>=', date('Y-m-d', strtotime('-30 days')))
             ->groupBy('date')
             ->get();
-        $dates = [];
+        $dates  = [];
         $counts = [];
         foreach ($logins as $login) {
-            $dates[] = $login->date;
+            $dates[]  = $login->date;
             $counts[] = $login->count;
         }
+
         return [
-            'dates' => $dates,
+            'dates'  => $dates,
             'counts' => $counts,
         ];
     }
@@ -48,7 +49,7 @@ class DashboardDataService
                 return $this->getGraphOfLoginsInLastMonth();
                 break;
             default:
-                return null;
+                return;
         }
     }
 }

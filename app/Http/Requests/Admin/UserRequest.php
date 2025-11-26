@@ -15,11 +15,11 @@ class UserRequest extends FormRequest
     {
         return [
             'first_name' => 'required|max:255',
-            'last_name' => 'required|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'role' => 'required',
-            'active' => 'required',
-            'language' => 'required',
+            'last_name'  => 'required|max:255',
+            'email'      => 'required|email|max:255|unique:users,email',
+            'role'       => 'required',
+            'active'     => 'required',
+            'language'   => 'required',
         ];
     }
 }
