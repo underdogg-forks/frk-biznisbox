@@ -12,7 +12,7 @@ use PDO;
 
 class InstallService
 {
-    public function createConnection($data)
+    public function createConnection($data): \Illuminate\Database\Connection
     {
         $driver   = $data['driver'];
         $host     = $data['host'];
@@ -35,7 +35,7 @@ class InstallService
         return DB::connection($driver);
     }
 
-    public function checkDbConnection($data)
+    public function checkDbConnection($data): array
     {
         try {
             $check = false;
@@ -70,7 +70,7 @@ class InstallService
         return $check;
     }
 
-    public function updateEnvFileWithDbInfo($data)
+    public function updateEnvFileWithDbInfo($data): array
     {
         $data = [
             'DB_CONNECTION' => $data['driver'],
@@ -89,7 +89,7 @@ class InstallService
         ];
     }
 
-    public function migrateDb()
+    public function migrateDb(): bool
     {
         // Migrate the database
         try {
@@ -105,7 +105,7 @@ class InstallService
         }
     }
 
-    public function seedDb()
+    public function seedDb(): bool
     {
         // Seed the database
         try {
@@ -122,7 +122,7 @@ class InstallService
         }
     }
 
-    public function checkRequirements()
+    public function checkRequirements(): array
     {
         $requirements = [];
         // Check PHP version
@@ -184,14 +184,14 @@ class InstallService
         return $requirements;
     }
 
-    public function checkEnvFile()
+    public function checkEnvFile(): bool
     {
         $envFile = base_path('.env');
 
         return (bool) (file_exists($envFile));
     }
 
-    public function createEnvFile()
+    public function createEnvFile(): void
     {
         $envFile    = base_path('.env.example');
         $newEnvFile = base_path('.env');
@@ -200,7 +200,7 @@ class InstallService
         }
     }
 
-    public function migrateAndSeed()
+    public function migrateAndSeed(): array
     {
         Artisan::call('cache:clear');
         $migration = $this->migrateDb();
@@ -228,7 +228,7 @@ class InstallService
         ];
     }
 
-    public function setAppInstalled()
+    public function setAppInstalled(): void
     {
         // Create install.lock file
         if ( ! file_exists(base_path('install.lock'))) {
@@ -239,7 +239,7 @@ class InstallService
         settings(['app_installed' => true], 'set');
     }
 
-    public function setJwtSecret()
+    public function setJwtSecret(): array
     {
         writeInEnvFile([
             'JWT_SECRET' => Str::random(64),
@@ -251,7 +251,7 @@ class InstallService
         ];
     }
 
-    public function setSettingsInDb($data)
+    public function setSettingsInDb($data): array
     {
         settings($data, 'set');
 
@@ -261,7 +261,7 @@ class InstallService
         ];
     }
 
-    public function createAdminUser($data)
+    public function createAdminUser($data): array
     {
         $user = User::create([
             'first_name' => $data['first_name'],
@@ -285,7 +285,7 @@ class InstallService
         ];
     }
 
-    public function checkAppInstalled()
+    public function checkAppInstalled(): array
     {
         if (isAppInstalled()) {
             return [
