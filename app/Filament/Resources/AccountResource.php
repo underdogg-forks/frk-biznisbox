@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Models\Account;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions;
 
 class AccountResource extends Resource
 {
@@ -31,8 +30,8 @@ class AccountResource extends Resource
                 \Filament\Tables\Columns\TextColumn::make('type'),
             ])
             ->actions([
-                Actions::make('edit'),
-                Actions::make('delete'),
+                \Filament\Tables\Actions\EditAction::make(),
+                \Filament\Tables\Actions\DeleteAction::make(),
             ]);
     }
 }
