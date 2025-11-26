@@ -159,4 +159,19 @@ return [
             'table_name' => 'languages',
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fully qualified class names for package models.
+    | You can extend package models with your custom ones.
+    |--------------------------------------------------------------------------
+    */
+    'models' => [
+        'cities'     => \Nnjeim\World\Models\City::class,
+        'countries'  => \Nnjeim\World\Models\Country::class,
+        'currencies' => \Nnjeim\World\Models\Currency::class,
+        'languages'  => \Nnjeim\World\Models\Language::class,
+        'states'     => \Nnjeim\World\Models\State::class,
+        'timezones'  => \Nnjeim\World\Models\Timezone::class,
+    ],
 ];

@@ -51,6 +51,7 @@
 <script>
 import { required } from '@/plugins/i18n-validators'
 import { useVuelidate } from '@vuelidate/core'
+
 export default {
     name: 'InstallCompanyPage',
     data() {
@@ -83,7 +84,6 @@ export default {
                 company_address: { required },
                 company_zip: { required },
                 company_city: { required },
-                company_country: { required },
                 company_phone: { required },
                 company_email: { required },
             },

@@ -1,0 +1,61 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Result of method App\\Models\\CalendarEvent\:\:eventFormat\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: app/Models/CalendarEvent.php
+
+		-
+			message: '#^Method App\\Models\\Invoice\:\:createInvoice\(\) should return bool but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Models/Invoice.php
+
+		-
+			message: '#^Method App\\Models\\Invoice\:\:deleteInvoice\(\) should return bool but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Models/Invoice.php
+
+		-
+			message: '#^Method App\\Models\\Invoice\:\:shareInvoice\(\) should return string but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Models/Invoice.php
+
+		-
+			message: '#^Method App\\Models\\Invoice\:\:updateInvoice\(\) should return bool but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Models/Invoice.php
+
+		-
+			message: '#^Result of method App\\Models\\Product\:\:getProductNumber\(\) \(void\) is used\.$#'
+			identifier: method.void
+			count: 1
+			path: app/Models/Product.php
+
+		-
+			message: '#^Method App\\Models\\Quote\:\:shareQuote\(\) should return string but return statement is missing\.$#'
+			identifier: return.missing
+			count: 1
+			path: app/Models/Quote.php
+
+		-
+			message: '#^Result of function writeInEnvFile \(void\) is used\.$#'
+			identifier: function.void
+			count: 1
+			path: app/Services/Admin/SettingService.php
+
+		-
+			message: '#^Deprecated in PHP 8\.0\: Required parameter \$data follows optional parameter \$key\.$#'
+			identifier: parameter.requiredAfterOptional
+			count: 1
+			path: app/Services/Client/ContractService.php
+
+		-
+			message: '#^Array has 3 duplicate keys with value ''currency'' \(''currency'', ''currency'', ''currency''\)\.$#'
+			identifier: array.duplicateKey
+			count: 1
+			path: app/Services/OpenBankingService.php
