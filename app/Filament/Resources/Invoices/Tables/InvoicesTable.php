@@ -100,6 +100,9 @@ class InvoicesTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \App\Filament\Resources\Invoices\Actions\ShareInvoiceAction::make(),
+                \App\Filament\Resources\Invoices\Actions\SendInvoiceNotificationAction::make(),
+                \App\Filament\Resources\Invoices\Actions\AddInvoicePaymentAction::make(),
                 \App\Filament\Resources\Invoices\Actions\GenerateInvoicePdfAction::make(),
             ])
             ->toolbarActions([

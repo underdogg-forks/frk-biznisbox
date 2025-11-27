@@ -73,6 +73,7 @@ class SupportTicketsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \App\Filament\Resources\SupportTickets\Actions\ShareTicketAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

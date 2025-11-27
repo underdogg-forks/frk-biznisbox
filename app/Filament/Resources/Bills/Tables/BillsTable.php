@@ -82,6 +82,7 @@ class BillsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \App\Filament\Resources\Bills\Actions\GenerateBillPdfAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
