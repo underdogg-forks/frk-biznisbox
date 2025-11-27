@@ -6,24 +6,18 @@ use App\Models\OnlinePayment;
 
 class PaymentService
 {
-    private $onlinePayment;
-
-    public function __construct(OnlinePayment $onlinePayment)
-    {
-        $this->onlinePayment = $onlinePayment;
+    public function __construct(
+        private readonly OnlinePayment $onlinePayment
+    ) {
     }
 
     public function getPayments()
     {
-        $onlinePayments = $this->onlinePayment->all();
-
-        return $onlinePayments;
+        return $this->onlinePayment->all();
     }
 
     public function getPayment($id)
     {
-        $payment = $this->onlinePayment->find($id);
-
-        return $payment;
+        return $this->onlinePayment->find($id);
     }
 }

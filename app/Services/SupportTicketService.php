@@ -7,124 +7,71 @@ use App\Models\SupportTicketContent;
 
 class SupportTicketService
 {
-    private $supportTicketModel;
-
-    private $supportTicketContentModel;
-
-    public function __construct()
-    {
-        $this->supportTicketModel        = new SupportTicket();
-        $this->supportTicketContentModel = new SupportTicketContent();
+    public function __construct(
+        private readonly SupportTicket $supportTicketModel,
+        private readonly SupportTicketContent $supportTicketContentModel
+    ) {
     }
 
     public function getTickets()
     {
-        $tickets = $this->supportTicketModel->getSupportTickets();
-
-        return $tickets;
+        return $this->supportTicketModel->getSupportTickets();
     }
 
     public function getTicket($id)
     {
-        $ticket = $this->supportTicketModel->getSupportTicket($id);
-
-        return $ticket;
+        return $this->supportTicketModel->getSupportTicket($id);
     }
 
     public function getTicketContents($id)
     {
         $ticket = $this->supportTicketModel->getSupportTicket($id);
-        if ($ticket) {
-            return $ticket->contents;
-        }
 
-        return false;
+        return $ticket ? $ticket->contents : false;
     }
 
     public function createTicket($data)
     {
-        $ticket = $this->supportTicketModel->createSupportTicket($data);
-        if ($ticket) {
-            return $ticket;
-        }
-
-        return false;
+        return $this->supportTicketModel->createSupportTicket($data) ?: false;
     }
 
     public function updateSupportTicket($id, $data)
     {
-        $ticket = $this->supportTicketModel->updateSupportTicket($id, $data);
-        if ($ticket) {
-            return $ticket;
-        }
-
-        return false;
+        return $this->supportTicketModel->updateSupportTicket($id, $data) ?: false;
     }
 
     public function deleteSupportTicket($id)
     {
-        $ticket = $this->supportTicketModel->deleteSupportTicket($id);
-        if ($ticket) {
-            return $ticket;
-        }
-
-        return false;
+        return $this->supportTicketModel->deleteSupportTicket($id) ?: false;
     }
 
     public function getTicketMessages($id)
     {
-        $ticket = $this->supportTicketContentModel->getTicketMessages($id);
-        if ($ticket) {
-            return $ticket;
-        }
-
-        return false;
+        return $this->supportTicketContentModel->getTicketMessages($id) ?: false;
     }
 
     public function createTicketMessage($ticker_id, $data)
     {
-        $supportTicketMessage = $this->supportTicketContentModel->createTicketMessage($ticker_id, $data);
-        if ($supportTicketMessage) {
-            return $supportTicketMessage;
-        }
-
-        return false;
+        return $this->supportTicketContentModel->createTicketMessage($ticker_id, $data) ?: false;
     }
 
     public function updateTicketMessage($id, $data)
     {
-        $supportTicketMessage = $this->supportTicketContentModel->updateTicketMessage($id, $data);
-        if ($supportTicketMessage) {
-            return $supportTicketMessage;
-        }
-
-        return false;
+        return $this->supportTicketContentModel->updateTicketMessage($id, $data) ?: false;
     }
 
     public function deleteTicketMessage($id)
     {
-        $supportTicketMessage = $this->supportTicketContentModel->deleteTicketMessage($id);
-        if ($supportTicketMessage) {
-            return $supportTicketMessage;
-        }
-
-        return false;
+        return $this->supportTicketContentModel->deleteTicketMessage($id) ?: false;
     }
 
     public function getTicketNumber()
     {
-        $ticket = $this->supportTicketModel->getTicketNumber();
-
-        return $ticket;
+        return $this->supportTicketModel->getTicketNumber();
     }
 
     public function shareTicket($id)
     {
-        $ticket = $this->supportTicketModel->shareTicket($id);
-        if ($ticket) {
-            return $ticket;
-        }
-
-        return false;
+        return $this->supportTicketModel->shareTicket($id) ?: false;
     }
 }
