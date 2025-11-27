@@ -9,7 +9,7 @@
             <p class="text-center">{{ __("install.creating_tables_description") }}</p>
 
             <div class="flex justify-between">
-                <ProgressSpinner />
+                {{-- TODO: Convert component to Filament equivalent --}}
             </div>
 
             <div class="mt-6 text-center">

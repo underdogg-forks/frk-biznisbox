@@ -39,10 +39,7 @@
                     <div class="grid">
                         <div class="flex flex-col gap-2 mb-2">
                             <label for="input_send_details_to" class="dark:text-surface-200"> {{ __("admin.user.send_details_to") }}</label>
-                            <AutoComplete
-                                id="input_send_details_to"
-                                multipleadmin.user.send_details_to")"
-                            />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         </div>
                     </div>
                 </form>

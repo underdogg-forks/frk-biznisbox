@@ -3,6 +3,6 @@
 {{-- Vue components are marked with TODO comments for conversion --}}
 
 <div id="toolbar">
-        <Toolbar class="toolbar">
-            <template #start>
+        {{-- TODO: Start component Filament equivalent --}}
+            {{-- TODO: Convert slot to Blade section --}}
                 {{-- TODO: Convert Button to Filament equivalent --}}

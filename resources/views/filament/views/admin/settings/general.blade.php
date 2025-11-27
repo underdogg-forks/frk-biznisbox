@@ -31,14 +31,14 @@
                             <label for="show_barcode_on_documents" class="dark:text-surface-200"
                                 >{{ __("admin.general.show_barcode_on_documents") }}
                             </label>
-                            <ToggleSwitch id="show_barcode_on_documents_switch" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         </div>
 
                         <div class="flex flex-col gap-2 mb-2">
                             <label for="save_document_into_archive" class="dark:text-surface-200"
                                 >{{ __("admin.general.save_document_into_archive") }}
                             </label>
-                            <ToggleSwitch id="save_document_into_archive_switch" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         </div>
 
                         {{-- TODO: Convert SelectInput to Filament equivalent --}}

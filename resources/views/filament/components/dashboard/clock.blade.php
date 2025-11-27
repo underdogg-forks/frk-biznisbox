@@ -2,4 +2,4 @@
 {{-- This template requires Filament components and controller data --}}
 {{-- Vue components are marked with TODO comments for conversion --}}
 
-<DashboardCardWithIcondashboard.current_time")" />
+{{-- TODO: Convert component to Filament equivalent --}}

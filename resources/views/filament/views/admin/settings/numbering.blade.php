@@ -7,70 +7,70 @@
             <user-headeradmin.numbering.title")" />
 
             <div class="card">
-                <Tabs value="invoice">
-                    <TabList>
-                        <Tab value="invoice">{{ __("admin.numbering.invoice") }}</Tab>
-                        <Tab value="quote">{{ __("admin.numbering.quote") }}</Tab>
-                        <Tab value="transaction">{{ __("admin.numbering.transaction") }}</Tab>
-                        <Tab value="payment">{{ __("admin.numbering.payment") }}</Tab>
-                        <Tab value="partner">{{ __("admin.numbering.partner") }}</Tab>
-                        <Tab value="bill">{{ __("admin.numbering.bill") }}</Tab>
-                        <Tab value="document">{{ __("admin.numbering.document") }}</Tab>
-                        <Tab value="product">{{ __("admin.numbering.product") }}</Tab>
-                        <Tab value="employee">{{ __("admin.numbering.employee") }}</Tab>
-                        <Tab value="archive">{{ __("admin.numbering.archive") }}</Tab>
-                        <Tab value="project">{{ __("admin.numbering.project") }}</Tab>
-                        <Tab value="contract">{{ __("admin.numbering.contract") }}</Tab>
+                {{-- TODO: Start component Filament equivalent --}}
+                    {{-- TODO: Start component Filament equivalent --}}
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.invoice") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.quote") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.transaction") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.payment") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.partner") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.bill") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.document") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.product") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.employee") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.archive") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.project") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.numbering.contract") }}</Tab>
                     </TabList>
 
-                    <TabPanels>
+                    {{-- TODO: Start component Filament equivalent --}}
                         <!-- Invoice -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Quote -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Transaction -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Payment -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Partner -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Bill -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Document -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Product -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Employee -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Archive -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Project -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                         <!-- Contract -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
-                            <NumberingInput @update:model-value="updateNumberingModel" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: End TabPanel --}}
                     </TabPanels>
                 </Tabs>

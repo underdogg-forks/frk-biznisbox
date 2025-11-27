@@ -37,17 +37,17 @@
 
                 <div class="grid grid-cols-1 lg:col-span-8">
                     <div class="card">
-                        <Tabs value="contact_information" scrollable>
-                            <TabList>
-                                <Tab value="contact_information">{{ __("partner.contact_information") }}</Tab>
-                                <Tab value="addresses">{{ __("partner.addresses") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}
+                            {{-- TODO: Start component Filament equivalent --}}
+                                {{-- TODO: Start component Filament equivalent --}}{{ __("partner.contact_information") }}</Tab>
+                                {{-- TODO: Start component Filament equivalent --}}{{ __("partner.addresses") }}</Tab>
                             </TabList>
 
-                            <TabPanels>
+                            {{-- TODO: Start component Filament equivalent --}}
                                 <!-- Contacts table -->
                                 {{-- TODO: Start TabPanel Filament equivalent --}}
                                     {{-- TODO: Start DataTable Filament equivalent --}}
-                                        <template #empty>
+                                        {{-- TODO: Convert slot to Blade section --}}
                                             <div class="p-4 pl-0 text-center w-full dark:text-gray-400">
                                                 <i class="fa fa-info-circle empty-icon"></i>
                                                 <p>{{ __("partner.no_contacts") }}</p>

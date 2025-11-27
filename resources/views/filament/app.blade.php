@@ -4,7 +4,7 @@
 
 <div class="min-w-screen min-h-screen dark:text-surface-200 dark:bg-surface-800">
         {{-- TODO: Convert Toast to Filament equivalent --}}
-        <ScrollTop />
+        {{-- TODO: Convert component to Filament equivalent --}}
         {{-- TODO: Start ConfirmDialog Filament equivalent --}}{{-- TODO: End ConfirmDialog --}}
-        <RouterView />
+        {{-- TODO: Convert component to Filament equivalent --}}
     </div>

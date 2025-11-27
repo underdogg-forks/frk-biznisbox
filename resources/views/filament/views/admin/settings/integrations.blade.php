@@ -7,21 +7,21 @@
             {{-- TODO: Convert PageHeader to Filament equivalent --}}
 
             <div class="card">
-                <Tabs value="online_payments">
-                    <TabList>
-                        <Tab value="online_payments">{{ __("admin.integrations.online_payments") }}</Tab>
-                        <Tab value="open_banking">{{ __("admin.integrations.open_banking") }}</Tab>
-                        <Tab value="document_signing">{{ __("admin.integrations.document_signing") }}</Tab>
+                {{-- TODO: Start component Filament equivalent --}}
+                    {{-- TODO: Start component Filament equivalent --}}
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.integrations.online_payments") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.integrations.open_banking") }}</Tab>
+                        {{-- TODO: Start component Filament equivalent --}}{{ __("admin.integrations.document_signing") }}</Tab>
                     </TabList>
 
-                    <TabPanels>
+                    {{-- TODO: Start component Filament equivalent --}}
                         <!-- Online Payments -->
                         {{-- TODO: Start TabPanel Filament equivalent --}}
                             <div id="stripe_integration">
                                 <h2 class="mb-4 font-bold dark:text-surface-200">{{ __("admin.integrations.stripe") }}</h2>
                                 <div class="flex flex-col gap-2 mb-2">
                                     <label class="dark:text-surface-200">{{ __("admin.integrations.stripe_available") }} </label>
-                                    <ToggleSwitch id="stripe_available" />
+                                    {{-- TODO: Convert component to Filament equivalent --}}
                                 </div>
                                 {{-- TODO: Convert PasswordInput to Filament equivalent --}}
 
@@ -33,12 +33,12 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     <div class="flex flex-col gap-2 mb-2">
                                         <label class="dark:text-surface-200">{{ __("admin.integrations.paypal_available") }} </label>
-                                        <ToggleSwitch />
+                                        {{-- TODO: Convert component to Filament equivalent --}}
                                     </div>
 
                                     <div class="flex flex-col gap-2 mb-2">
                                         <label class="dark:text-surface-200">{{ __("admin.integrations.paypal_test_mode") }} </label>
-                                        <ToggleSwitch />
+                                        {{-- TODO: Convert component to Filament equivalent --}}
                                     </div>
                                 </div>
 
@@ -57,7 +57,7 @@
                                         <label for="coinbase_available" class="dark:text-surface-200"
                                             >{{ __("admin.integrations.coinbase_available") }}
                                         </label>
-                                        <ToggleSwitch id="coinbase_available" />
+                                        {{-- TODO: Convert component to Filament equivalent --}}
                                     </div>
                                 </div>
 
@@ -75,7 +75,7 @@
                                     <label class="dark:text-surface-200">
                                         {{ __("admin.integrations.open_banking_available") }}
                                     </label>
-                                    <ToggleSwitch />
+                                    {{-- TODO: Convert component to Filament equivalent --}}
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -94,7 +94,7 @@
                                     <label class="dark:text-surface-200">
                                         {{ __("admin.integrations.document_signing_available") }}
                                     </label>
-                                    <ToggleSwitch />
+                                    {{-- TODO: Convert component to Filament equivalent --}}
                                 </div>
                             </div>
                         {{-- TODO: End TabPanel --}}

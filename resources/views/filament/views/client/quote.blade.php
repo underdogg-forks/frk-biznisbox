@@ -15,7 +15,7 @@
 
             <div class="card m-2">
                 {{-- TODO: Start PageHeader Filament equivalent --}}
-                    <template #actions>
+                    {{-- TODO: Convert slot to Blade section --}}
                         {{-- TODO: Convert Button to Filament equivalent --}}
                         <div
                         >

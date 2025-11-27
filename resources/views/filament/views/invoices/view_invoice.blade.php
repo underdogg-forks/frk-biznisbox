@@ -5,22 +5,21 @@
 {{-- TODO: Start DefaultLayout Filament equivalent --}}
         {{-- TODO: Start LoadingScreen Filament equivalent --}}
             {{-- TODO: Start PageHeader Filament equivalent --}}
-                <template #actions>
+                {{-- TODO: Convert slot to Blade section --}}
                     {{-- TODO: Start Button Filament equivalent --}}
                     {{-- TODO: Convert Button to Filament equivalent --}}
                     {{-- TODO: Convert Button to Filament equivalent --}}
 
-                    {{-- TODO: Start SplitButton Filament equivalent --}} shareInvoice(NEEDS_CONVERSION},
+                    {{-- TODO: Start SplitButton Filament equivalent --}} shareInvoice(NEEDS_CONVERSION,
                             {
                                 label: __("basic.send"),
                                 icon: 'fa fa-paper-plane',
-                                command: () => sendInvoiceNotification(NEEDS_CONVERSION},
-                            { label: __("basic.download"), icon: 'fa fa-download', command: downloadInvoice },
-                            { label: __("basic.show_pdf"), icon: 'fa fa-file-pdf', command: viewInvoicePdf },
+                                NEEDS_CONVERSION, icon: 'fa fa-download', },
+                            { label: __("basic.show_pdf"), icon: 'fa fa-file-pdf', },
                             {
                                 label: __("basic.audit_log"),
                                 icon: 'fa fa-history',
-                                command: () => (showAuditLogDialog = true),
+                                ,
                             },
                         ]"
                     />

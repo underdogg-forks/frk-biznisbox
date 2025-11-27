@@ -43,10 +43,7 @@
                     <label for="input_send_details_to" class="dark:text-surface-200">
                         {{ __("admin.mail.send_test_email_to") }}
                     </label>
-                    <AutoComplete
-                        id="input_send_details_to"
-                        multipleadmin.email.email_address")"
-                    />
+                    {{-- TODO: Convert component to Filament equivalent --}}
                 </div>
             </div>
 

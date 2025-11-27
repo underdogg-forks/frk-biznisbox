@@ -5,7 +5,7 @@
 {{-- TODO: Start DefaultLayout Filament equivalent --}}
         {{-- TODO: Start LoadingScreen Filament equivalent --}}
             {{-- TODO: Start PageHeader Filament equivalent --}}
-                <template #actions>
+                {{-- TODO: Convert slot to Blade section --}}
                     {{-- TODO: Start Button Filament equivalent --}}
                     {{-- TODO: Convert Button to Filament equivalent --}}
 
@@ -14,7 +14,7 @@
                             {
                                 label: __("basic.share"),
                                 icon: 'fa fa-share',
-                                command: () => {
+                                
                                     shareContract(contract.id)
                                 },
                             },

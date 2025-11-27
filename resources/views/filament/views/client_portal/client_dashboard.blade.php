@@ -7,30 +7,10 @@
 
         <!-- Dashboard Cards -->
         <div class="grid md:grid-cols-2 grid-cols-1 gap-4 mb-4">
-            <DashboardCardWithIcon
-                :dashboard-data="dashboardData.contracts_count"
-                :dashboard-title="__("client_portal.number_of_contracts")"
-                icon-class="fa fa-file-alt"
-            />
-            <DashboardCardWithIcon
-                :dashboard-data="dashboardData.unpaid_invoices"
-                :dashboard-title="__("client_portal.number_of_unpaid_invoices")"
-                icon-class="fa fa-file-invoice-dollar"
-            />
-            <DashboardCardWithIcon
-                :dashboard-data="dashboardData.number_of_support_tickets"
-                :dashboard-title="__("client_portal.number_of_support_tickets")"
-                icon-class="fa fa-headset"
-            />
-            <DashboardCardWithIcon
-                :dashboard-data="dashboardData.number_of_bills"
-                :dashboard-title="__("client_portal.number_of_bills")"
-                icon-class="fa fa-file-invoice"
-            />
-            <DashboardCardWithIcon
-                :dashboard-data="dashboardData.number_of_quotes"
-                :dashboard-title="__("client_portal.number_of_quotes")"
-                icon-class="fa fa-file-alt"
-            />
+            {{-- TODO: Convert component to Filament equivalent --}}
+            {{-- TODO: Convert component to Filament equivalent --}}
+            {{-- TODO: Convert component to Filament equivalent --}}
+            {{-- TODO: Convert component to Filament equivalent --}}
+            {{-- TODO: Convert component to Filament equivalent --}}
         </div>
     {{-- TODO: End DefaultLayout --}}

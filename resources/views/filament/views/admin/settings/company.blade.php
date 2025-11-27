@@ -9,11 +9,7 @@
             <div id="company_data" class="card">
                 <form class="formgrid">
                     <div id="company_logo" class="flex items-center">
-                        <Avatar
-                            size="xlarge"
-                            @contextmenu.prevent="removeLogo"
-                            class="company-logo transition duration-300 ease-in-out transform hover:scale-110"
-                        />
+                        {{-- TODO: Convert component to Filament equivalent --}}
                         {{-- TODO: Start FileUpload Filament equivalent --}}
                     </div>
 
@@ -40,7 +36,7 @@
                     <div class="flex flex-col gap-2 mb-2">
                         <label for="color_input" class="dark:text-surface-200">{{ __("admin.company.company_primary_color") }}</label>
                         <div class="grid grid-cols-12 gap-2 items-center">
-                            <ColorPicker id="color_input" class="col-span-1" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                             {{-- TODO: Convert TextInput to Filament equivalent --}}
                         </div>
                     </div>

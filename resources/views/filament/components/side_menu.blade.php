@@ -3,7 +3,7 @@
 {{-- Vue components are marked with TODO comments for conversion --}}
 
 <div id="side_menu">
-        <template>
+        {{-- TODO: Convert slot to Blade section --}}
             <div>
                 <router-link class="side-menu-item text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700">
                     <i class="icon"></i>
@@ -11,12 +11,10 @@
                 </router-link>
             </div>
             <div>
-                <template>
-                    <router-link v-slot="{ isActive }" custom>
+                {{-- TODO: Convert slot to Blade section --}}
+                    <router-link  custom>
                         <div>
                             <a
-                                tabindex="0"
-                                class="side-menu-item text-surface-300 hover:bg-surface-200 dark:text-surface-100 dark:hover:bg-surface-700"
                             >
                                 <i class="icon"></i>
                                 <span>{{ $t(item.name) }}</span>
@@ -27,7 +25,6 @@
                                     <ul>
                                         <li>
                                             <router-link
-                                                class="side-menu-item text-surface-300 hover:bg-surface-200 dark:hover:bg-surface-700"
                                             >
                                                 <i class="icon"></i>
                                                 <span>{{ $t(submenuitem.name) }}</span>

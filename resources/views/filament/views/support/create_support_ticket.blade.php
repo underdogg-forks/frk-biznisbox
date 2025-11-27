@@ -17,13 +17,13 @@
 
                         <div class="flex flex-col gap-2 mb-2">
                             <label for="is_internal_switch" class="dark:text-surface-200">{{ __("form.is_internal") }}</label>
-                            <ToggleSwitch id="is_internal_switch" />
+                            {{-- TODO: Convert component to Filament equivalent --}}
                         </div>
 
                         <div id="partner_input">
                             <div class="flex flex-col gap-2 mb-2">
                                 <label for="custom_partner_switch" class="dark:text-surface-200">{{ __("form.custom_contact") }}</label>
-                                <ToggleSwitch id="custom_partner_switch" />
+                                {{-- TODO: Convert component to Filament equivalent --}}
                             </div>
                             {{-- TODO: Convert SelectInput to Filament equivalent --}}
 

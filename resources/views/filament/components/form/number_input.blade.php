@@ -4,38 +4,15 @@
 
 <div class="flex flex-col gap-2 mb-2">
         <label class="dark:text-surface-200">{{ label }}</label>
-        <InputNumber
-            :model-value="modelValue"
-            inputClass="w-full"
-        />
+        {{-- TODO: Convert component to Filament equivalent --}}
 
-        <InputNumber
-            :model-value="modelValue"
-            mode="decimal"
-            :min-fraction-digits="minFraction"
-            :max-fraction-digits="maxFraction"
-            inputClass="w-full"
-        />
+        {{-- TODO: Convert component to Filament equivalent --}}
 
-        <InputNumber
-            :model-value="modelValue"
-            mode="currency"
-            inputClass="w-full"
-        />
+        {{-- TODO: Convert component to Filament equivalent --}}
 
-        <InputNumber
-            :model-value="modelValue"
-            mode="decimal"
-            :min-fraction-digits="0"
-            :max-fraction-digits="2"
-            inputClass="w-full"
-        />
+        {{-- TODO: Convert component to Filament equivalent --}}
 
-        <InputNumber
-            :model-value="modelValue"
-            show-buttons
-            inputClass="w-full"
-        />
+        {{-- TODO: Convert component to Filament equivalent --}}
 
         <div class="flex flex-column">
             <div class="dark:text-red-400 text-red-500 text-sm">

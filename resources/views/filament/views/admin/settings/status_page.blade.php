@@ -6,7 +6,7 @@
         {{-- TODO: Start LoadingScreen Filament equivalent --}}
             {{-- TODO: Convert PageHeader to Filament equivalent --}}
 
-            <Message severity="success">
+            {{-- TODO: Start component Filament equivalent --}}
                 <div class="flex items-center justify-end">
                     <p>{{ __("admin.status.new_version_available") }}</p>
 

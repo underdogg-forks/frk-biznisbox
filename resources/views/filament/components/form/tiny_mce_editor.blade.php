@@ -4,11 +4,7 @@
 
 <div class="flex flex-col gap-2 mb-2">
         <label class="dark:text-surface-200">{{ label }}</label>
-        <Editor
-            ref="editor"
-            model-events="change keydown blur focus paste"
-            license-key="gpl"
-        />
+        {{-- TODO: Convert component to Filament equivalent --}}
         <div class="flex flex-col">
             <div class="dark:text-red-400 text-red-500 text-sm">
                 {{ error?.$message }}

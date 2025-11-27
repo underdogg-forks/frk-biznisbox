@@ -2,5 +2,4 @@
 {{-- This template requires Filament components and controller data --}}
 {{-- Vue components are marked with TODO comments for conversion --}}
 
-<DashboardCardWithIcondashboard.number_of_unpaid_invoices")"
-    />
+{{-- TODO: Convert component to Filament equivalent --}}

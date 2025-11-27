@@ -75,8 +75,6 @@
 
                         <div>
                             <div
-                                id="new_replay"
-                                class="card p-4 mb-4"
                             >
                                 {{-- TODO: Convert TinyMceEditor to Filament equivalent --}}
                                 {{-- TODO: Convert Button to Filament equivalent --}}

@@ -38,5 +38,5 @@
                         {{-- TODO: Convert Button to Filament equivalent --}}
                     </div>
                     {{-- TODO: Start DataTable Filament equivalent --}}
-                        <template #empty>
+                        {{-- TODO: Convert slot to Blade section --}}
                             <div class="p-4 pl-0 text-center">{{ __("invoice.no_items") }}</div>

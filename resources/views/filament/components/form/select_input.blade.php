@@ -4,11 +4,7 @@
 
 <div class="flex flex-col gap-2 mb-2">
         <label class="dark:text-surface-200">{{ label }}</label>
-        <Select
-            :model-value="modelValue"
-            :option-value="optionValue"
-            :option-label="optionLabel"
-        />
+        {{-- TODO: Convert component to Filament equivalent --}}
         <div class="flex flex-column">
             <div class="dark:text-red-400 text-red-500 text-sm">
                 {{ error.$message }}

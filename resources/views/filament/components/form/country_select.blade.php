@@ -4,13 +4,8 @@
 
 <div class="flex flex-col gap-2">
         <label class="dark:text-surface-200">{{ label }}</label>
-        <Select
-            :model-value="modelValue"
-            option-value="name"
-            option-label="name"
-            :show-clear="showClear"
-        >
-            <template #value="slotProps">
+        {{-- TODO: Start component Filament equivalent --}}
+            {{-- TODO: Convert slot to Blade section --}}
                 <div>
                     {{ $t(`countries.${slotProps.value}`) }}
                 </div>

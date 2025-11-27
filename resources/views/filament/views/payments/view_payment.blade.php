@@ -5,6 +5,6 @@
 {{-- TODO: Start DefaultLayout Filament equivalent --}}
         {{-- TODO: Start LoadingScreen Filament equivalent --}}
             {{-- TODO: Start PageHeader Filament equivalent --}}
-                <template #actions>
+                {{-- TODO: Convert slot to Blade section --}}
                     {{-- TODO: Convert Button to Filament equivalent --}}
                     {{-- TODO: Convert Button to Filament equivalent --}}

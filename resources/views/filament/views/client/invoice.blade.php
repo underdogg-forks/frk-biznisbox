@@ -16,16 +16,11 @@
 
                 <div class="card m-2">
                     {{-- TODO: Start PageHeader Filament equivalent --}}
-                        <template #actions>
+                        {{-- TODO: Convert slot to Blade section --}}
                             {{-- TODO: Convert Button to Filament equivalent --}}
                             {{-- TODO: Start Button Filament equivalent --}} 0 && invoice.status != 'paid'"
-                                id="select_payment_gateway_button"
-                                v-tooltip:top="__("invoice.click_for_pay")"
-                                class="mr-2 no-print"
-                                icon="fa fa-credit-card"
+                                invoice.click_for_pay")"
                             />
                             {{-- TODO: Start Button Filament equivalent --}} 0"
-                                id="show_transactions_button"
-                                class="mr-2 no-print"
                                 icon="fa fa-list"invoice.show_transactions")"
                             />

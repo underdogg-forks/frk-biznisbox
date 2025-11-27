@@ -2,7 +2,7 @@
 {{-- This template requires Filament components and controller data --}}
 {{-- Vue components are marked with TODO comments for conversion --}}
 
-<BlockUI>
-        <ProgressSpinner class="spinner" />
+{{-- TODO: Start component Filament equivalent --}}
+        {{-- TODO: Convert component to Filament equivalent --}}
         <slot></slot>
     </BlockUI>

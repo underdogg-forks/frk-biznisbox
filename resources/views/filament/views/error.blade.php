@@ -13,7 +13,7 @@
                     <p class="dark:text-surface-200">
                         {{ __("errors.error_404_message") }}
                     </p>
-                    <RouterLink to="/" class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer hover:underline">
+                    {{-- TODO: Start component Filament equivalent --}}
                         {{ __("errors.back_to_dashboard") }}
                     </RouterLink>
                 </div>
