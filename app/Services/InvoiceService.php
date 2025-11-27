@@ -3,103 +3,92 @@
 namespace App\Services;
 
 use App\Models\Invoice;
-use App\Models\PartnerContact;
 use App\Models\Transaction;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Mail;
+use App\Services\Concerns\GeneratesPdf;
+use App\Services\Concerns\SendsNotifications;
 
 class InvoiceService
 {
-    private $invoiceModel;
+    use GeneratesPdf;
+    use SendsNotifications;
 
-    public function __construct()
-    {
-        $this->invoiceModel = new Invoice();
+    public function __construct(
+        private readonly Invoice $invoiceModel
+    ) {
     }
 
     public function getInvoices()
     {
-        $invoices = $this->invoiceModel->getInvoices();
-
-        return $invoices;
+        return $this->invoiceModel->getInvoices();
     }
 
     public function getInvoice($id)
     {
-        $invoice = $this->invoiceModel->getInvoice($id);
-
-        return $invoice;
+        return $this->invoiceModel->getInvoice($id);
     }
 
     public function createInvoice($data)
     {
-        $invoice = $this->invoiceModel->createInvoice($data);
-
-        return $invoice;
+        return $this->invoiceModel->createInvoice($data);
     }
 
     public function updateInvoice($id, $data)
     {
-        $invoice = $this->invoiceModel->updateInvoice($id, $data);
-
-        return $invoice;
+        return $this->invoiceModel->updateInvoice($id, $data);
     }
 
     public function deleteInvoice($id)
     {
-        $invoice = $this->invoiceModel->deleteInvoice($id);
-
-        return $invoice;
+        return $this->invoiceModel->deleteInvoice($id);
     }
 
     public function getInvoiceNumber()
     {
-        $invoice = $this->invoiceModel->getInvoiceNumber();
-
-        return $invoice;
+        return $this->invoiceModel->getInvoiceNumber();
     }
 
     public function shareInvoice($id)
     {
-        $invoice = $this->invoiceModel->shareInvoice($id);
-
-        return $invoice;
+        return $this->invoiceModel->shareInvoice($id);
     }
 
+    /**
+     * Get invoice PDF.
+     *
+     * @param string $id   Invoice ID
+     * @param string $type Type of PDF (stream, download, attach)
+     *
+     * @return mixed PDF output based on type
+     */
     public function getInvoicePdf($id, $type = 'stream')
     {
-        $invoice  = $this->getInvoice($id);
-        $settings = settings([
-            'company_name',
-            'company_address',
-            'company_city',
-            'company_zip',
-            'company_country',
-            'company_phone',
-            'company_email',
-            'company_vat',
-            'company_logo',
-            'show_barcode_on_documents',
-            'default_currency',
-        ]);
-        $pdf = PDF::loadView('pdfs.invoice', compact('invoice', 'settings'));
+        $invoice = $this->getInvoice($id);
 
-        if ($type == 'attach') {
-            return $pdf->output();
-        }
-        if ($type == 'download') {
-            createActivityLog('DownloadInvoice', $invoice->id, 'App\Models\Invoice', 'Invoice');
-
-            return $pdf->download('Invoice ' . $invoice->number . '.pdf');
-        }
-        createActivityLog('ViewInvoice', $invoice->id, 'App\Models\Invoice', 'Invoice');
-
-        return $pdf->stream('Invoice ' . $invoice->number . '.pdf');
+        return $this->generatePdf(
+            document: $invoice,
+            view: 'pdfs.invoice',
+            type: $type,
+            filename: 'Invoice',
+            activity: $type === 'download' ? 'DownloadInvoice' : 'ViewInvoice',
+            model: Invoice::class
+        );
     }
 
-    public function addInvoicePayment($invoice_id, $data)
+    /**
+     * Add invoice payment.
+     *
+     * @param string $invoice_id Invoice ID
+     * @param array  $data       Payment data
+     *
+     * @return Transaction|null
+     */
+    public function addInvoicePayment($invoice_id, $data): ?Transaction
     {
         $invoice = $this->invoiceModel->find($invoice_id);
+
+        if (! $invoice) {
+            return null;
+        }
 
         $transaction = Transaction::create([
             'number'        => Transaction::getTransactionNumber(),
@@ -113,87 +102,75 @@ class InvoiceService
             'currency_rate' => $invoice->currency_rate,
         ]);
 
-        if ($transaction) {
-            $transactions = Transaction::where('invoice_id', $invoice_id)->get();
-            // Calculate total of all transactions
-            $total = 0;
-            foreach ($transactions as $transaction) {
-                if ($transaction->type == 'income') {
-                    $total += $transaction->amount;
-                }
-                if ($transaction->type == 'expense') {
-                    $total -= $transaction->amount;
-                }
-                // transaction type can be 'income' or 'expense'
-            }
-            // Update invoice total
-            if ($total == $invoice->total) {
-                $invoice->status = 'paid';
-            }
-            if ($total > 0 && $total < $invoice->total) {
-                $invoice->status = 'partial'; // 'partial' or 'paid'
-            }
-            if ($total > $invoice->total) {
-                $invoice->status = 'overpaid';
-            }
-            $invoice->save();
-            incrementLastItemNumber('transaction');
-            createActivityLog('addInvoicePayment', $invoice_id, 'App\Models\Invoice', 'Invoice');
-            sendWebhookForEvent('invoice:payment_received', $transaction->toArray());
-
-            return $transaction;
+        if (! $transaction) {
+            return null;
         }
+
+        $this->updateInvoiceStatus($invoice);
+
+        incrementLastItemNumber('transaction');
+        createActivityLog('addInvoicePayment', $invoice_id, Invoice::class, 'Invoice');
+        sendWebhookForEvent('invoice:payment_received', $transaction->toArray());
+
+        return $transaction;
+    }
+
+    /**
+     * Update invoice status based on payment total.
+     */
+    private function updateInvoiceStatus(Invoice $invoice): void
+    {
+        $transactions = Transaction::where('invoice_id', $invoice->id)->get();
+        $total        = 0;
+
+        foreach ($transactions as $transaction) {
+            $total += $transaction->type === 'income' ? $transaction->amount : -$transaction->amount;
+        }
+
+        $invoice->status = match (true) {
+            $total == $invoice->total        => 'paid',
+            $total > 0 && $total < $invoice->total => 'partial',
+            $total > $invoice->total         => 'overpaid',
+            default                          => $invoice->status,
+        };
+
+        $invoice->save();
     }
 
     public function getInvoicePayments($invoice_id)
     {
-        $transactions = Transaction::where('invoice_id', $invoice_id)->get();
-
-        return $transactions;
+        return Transaction::where('invoice_id', $invoice_id)->get();
     }
 
-    public function sendInvoiceNotification($invoice_id, $contact = null)
+    /**
+     * Send invoice notification.
+     *
+     * @param string      $invoice_id Invoice ID
+     * @param object|null $contact    Contact object (optional)
+     *
+     * @return bool
+     */
+    public function sendInvoiceNotification($invoice_id, $contact = null): bool
     {
         $invoice = $this->invoiceModel->getClientInvoice($invoice_id);
 
-        if ($contact != null) {
-            $url = url(
-                '/client/invoice/'
-                    . $invoice->id
-                    . '?key='
-                    . generateExternalKey('invoice', $invoice->id, 'system', null, $contact->email, 'email')
-                    . '&lang='
-                    . app()->getLocale()
-            );
+        $result = $this->sendDocumentNotification(
+            document: $invoice,
+            documentType: 'invoice',
+            mailClass: \App\Mail\Client\InvoiceNotification::class,
+            contact: $contact
+        );
 
-            Mail::to($contact->email)->send(new \App\Mail\Client\InvoiceNotification($invoice, $url, $contact));
-
-            return true;
-        }
-        $contacts = PartnerContact::where('partner_id', $invoice->customer_id)
-            ->orWhere('partner_id', $invoice->payer_id)
-            ->where('is_primary', true)
-            ->whereNotNull('email')
-            ->get();
-
-        foreach ($contacts as $contact) {
-            $url = $url = url(
-                '/client/invoice/'
-                    . $invoice->id
-                    . '?key='
-                    . generateExternalKey('invoice', $invoice->id, 'system', null, $contact->email, 'email')
-                    . '&lang='
-                    . app()->getLocale()
-            );
-
-            Mail::to($contact->email)->send(new \App\Mail\Client\InvoiceNotification($invoice, $url, $contact));
+        if (! $result) {
+            return false;
         }
 
-        if ($invoice->status != 'paid' && $invoice->status != 'overpaid' && $invoice->status != 'partial' && $invoice->status != 'sent') {
-            $invoice->status = 'sent';
-            $invoice->save();
-        }
-        createActivityLog('sendInvoiceNotification', $invoice_id, 'App\Models\Invoice', 'Invoice');
+        $this->updateStatusAfterNotification(
+            document: $invoice,
+            excludeStatuses: ['paid', 'overpaid', 'partial', 'sent']
+        );
+
+        createActivityLog('sendInvoiceNotification', $invoice_id, Invoice::class, 'Invoice');
 
         return true;
     }

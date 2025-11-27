@@ -3,48 +3,40 @@
 namespace App\Services;
 
 use App\Models\Bill;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\Concerns\GeneratesPdf;
 
 class BillService
 {
-    private $billModel;
+    use GeneratesPdf;
 
-    public function __construct(Bill $billModel)
-    {
-        $this->billModel = new Bill();
+    public function __construct(
+        private readonly Bill $billModel
+    ) {
     }
 
     public function getBills()
     {
-        $bills = $this->billModel->getBills();
-
-        return $bills;
+        return $this->billModel->getBills();
     }
 
     public function getBill($id)
     {
-        $bill = $this->billModel->getBill($id);
-
-        return $bill;
+        return $this->billModel->getBill($id);
     }
 
     public function createBill($data)
     {
-        $bill = $this->billModel->createBill($data);
-
-        return $bill;
+        return $this->billModel->createBill($data);
     }
 
     public function updateBill($id, $data)
     {
-        $bill = $this->billModel->updateBill($id, $data);
-
-        return $bill;
+        return $this->billModel->updateBill($id, $data);
     }
 
     public function deleteBill($id)
     {
-        $bill = $this->billModel->deleteBill($id);
+        return $this->billModel->deleteBill($id);
     }
 
     public function getBillNumber()
@@ -52,34 +44,25 @@ class BillService
         return $this->billModel->getBillNumber();
     }
 
+    /**
+     * Get bill PDF.
+     *
+     * @param string $id   Bill ID
+     * @param string $type Type of PDF (stream, download, attach)
+     *
+     * @return mixed PDF output based on type
+     */
     public function getBillPdf($id, $type = 'stream')
     {
-        $bill     = $this->billModel->getBill($id);
-        $settings = settings([
-            'company_name',
-            'company_address',
-            'company_city',
-            'company_zip',
-            'company_country',
-            'company_phone',
-            'company_email',
-            'company_vat',
-            'company_logo',
-            'show_barcode_on_documents',
-            'default_currency',
-        ]);
-        $pdf = PDF::loadView('pdfs.bill', compact('bill', 'settings'));
+        $bill = $this->billModel->getBill($id);
 
-        if ($type == 'attach') {
-            return $pdf->output();
-        }
-        if ($type == 'download') {
-            createActivityLog('DownloadBillPdf', $bill->id, 'App\Models\Bill', 'Bill');
-
-            return $pdf->download('Bill ' . $bill->number . '.pdf');
-        }
-        createActivityLog('ViewBillPdf', $bill->id, 'App\Models\Bill', 'Bill');
-
-        return $pdf->stream('Bill ' . $bill->number . '.pdf');
+        return $this->generatePdf(
+            document: $bill,
+            view: 'pdfs.bill',
+            type: $type,
+            filename: 'Bill',
+            activity: $type === 'download' ? 'DownloadBillPdf' : 'ViewBillPdf',
+            model: Bill::class
+        );
     }
 }
