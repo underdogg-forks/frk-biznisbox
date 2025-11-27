@@ -33,6 +33,9 @@ trait SendsDocumentNotifications
                 Select::make('contact_id')
                     ->label('Recipient Contact')
                     ->options(function ($record) {
+                        if (! isset($record->customer_id)) {
+                            return [];
+                        }
                         return PartnerContact::where(function ($query) use ($record) {
                             $query->where('partner_id', $record->customer_id);
                             if (isset($record->payer_id)) {
