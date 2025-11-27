@@ -64,6 +64,11 @@ class SupportTicketServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertCount(5, $result);
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $result);
+        // Verify all returned items are SupportTicket instances
+        $result->each(function ($ticket) {
+            $this->assertInstanceOf(SupportTicket::class, $ticket);
+        });
     }
 
     /** @test */
@@ -73,6 +78,8 @@ class SupportTicketServiceTest extends TestCase
         $ticket = SupportTicket::factory()->create([
             'user_id' => $this->user->id,
             'number' => 'TKT-123',
+            'subject' => 'Test Issue',
+            'status' => 'open',
         ]);
 
         /* act */
@@ -80,7 +87,11 @@ class SupportTicketServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(SupportTicket::class, $result);
         $this->assertEquals('TKT-123', $result->number);
+        $this->assertEquals('Test Issue', $result->subject);
+        $this->assertEquals('open', $result->status);
+        $this->assertEquals($ticket->id, $result->id);
     }
 
     /** @test */
@@ -103,6 +114,7 @@ class SupportTicketServiceTest extends TestCase
             'subject' => 'Test Support Ticket',
             'status' => 'open',
             'priority' => 'medium',
+            'description' => 'This is a test ticket description',
         ];
 
         /* act */
@@ -110,10 +122,17 @@ class SupportTicketServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(SupportTicket::class, $result);
         $this->assertDatabaseHas('support_tickets', [
             'number' => 'TKT-NEW-001',
             'subject' => 'Test Support Ticket',
+            'status' => 'open',
+            'priority' => 'medium',
         ]);
+        // Verify the returned object matches what was created
+        $this->assertEquals('TKT-NEW-001', $result->number);
+        $this->assertEquals('Test Support Ticket', $result->subject);
+        $this->assertNotNull($result->id);
     }
 
     /** @test */
@@ -123,11 +142,14 @@ class SupportTicketServiceTest extends TestCase
         $ticket = SupportTicket::factory()->create([
             'user_id' => $this->user->id,
             'status' => 'open',
+            'priority' => 'low',
+            'notes' => 'Original notes',
         ]);
 
         $updateData = [
             'status' => 'closed',
             'notes' => 'Resolved the issue',
+            'priority' => 'high',
         ];
 
         /* act */
@@ -135,9 +157,13 @@ class SupportTicketServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(SupportTicket::class, $result);
         $ticket->refresh();
         $this->assertEquals('closed', $ticket->status);
         $this->assertEquals('Resolved the issue', $ticket->notes);
+        $this->assertEquals('high', $ticket->priority);
+        // ID should remain the same
+        $this->assertEquals($ticket->id, $result->id);
     }
 
     /** @test */
@@ -146,7 +172,9 @@ class SupportTicketServiceTest extends TestCase
         /* arrange */
         $ticket = SupportTicket::factory()->create([
             'user_id' => $this->user->id,
+            'number' => 'TKT-DELETE-001',
         ]);
+        $ticketId = $ticket->id;
 
         /* act */
         $result = $this->ticketService->deleteSupportTicket($ticket->id);
@@ -154,8 +182,12 @@ class SupportTicketServiceTest extends TestCase
         /* assert */
         $this->assertNotFalse($result);
         $this->assertSoftDeleted('support_tickets', [
-            'id' => $ticket->id,
+            'id' => $ticketId,
         ]);
+        // Verify the ticket can't be found with standard queries
+        $this->assertNull(SupportTicket::find($ticketId));
+        // But exists with trashed
+        $this->assertNotNull(SupportTicket::withTrashed()->find($ticketId));
     }
 
     /** @test */
@@ -167,5 +199,7 @@ class SupportTicketServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // Should follow a pattern (e.g., TKT-XXXX or similar)
+        $this->assertMatchesRegularExpression('/[A-Z0-9-]+/', $result);
     }
 }

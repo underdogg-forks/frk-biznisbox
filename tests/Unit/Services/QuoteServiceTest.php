@@ -94,6 +94,8 @@ class QuoteServiceTest extends TestCase
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'QTE-TEST-001',
+            'total' => 2500.00,
+            'currency' => 'USD',
         ]);
 
         /* act */
@@ -101,6 +103,13 @@ class QuoteServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'ViewQuote',
+            'subject_id' => $quote->id,
+            'subject_type' => 'App\Models\Quote',
+        ]);
     }
 
     /** @test */
@@ -111,6 +120,7 @@ class QuoteServiceTest extends TestCase
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'QTE-TEST-002',
+            'total' => 3500.00,
         ]);
 
         /* act */
@@ -118,6 +128,13 @@ class QuoteServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created for download
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'DownloadQuote',
+            'subject_id' => $quote->id,
+            'subject_type' => 'App\Models\Quote',
+        ]);
     }
 
     /** @test */
@@ -128,6 +145,7 @@ class QuoteServiceTest extends TestCase
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'QTE-TEST-003',
+            'total' => 4500.00,
         ]);
 
         /* act */
@@ -136,6 +154,10 @@ class QuoteServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // PDF output should start with PDF header
+        $this->assertStringStartsWith('%PDF', $result);
+        // Should contain quote number
+        $this->assertStringContainsString('QTE-TEST-003', $result);
     }
 
     /** @test */
@@ -239,6 +261,11 @@ class QuoteServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertCount(5, $result);
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $result);
+        // Verify all returned items are Quote instances
+        $result->each(function ($quote) {
+            $this->assertInstanceOf(Quote::class, $quote);
+        });
     }
 
     /** @test */
@@ -249,6 +276,8 @@ class QuoteServiceTest extends TestCase
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'QTE-123',
+            'total' => 7500.00,
+            'status' => 'sent',
         ]);
 
         /* act */
@@ -256,7 +285,11 @@ class QuoteServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Quote::class, $result);
         $this->assertEquals('QTE-123', $result->number);
+        $this->assertEquals(7500.00, $result->total);
+        $this->assertEquals('sent', $result->status);
+        $this->assertEquals($quote->id, $result->id);
     }
 
     /** @test */
@@ -282,6 +315,7 @@ class QuoteServiceTest extends TestCase
             'valid_until' => now()->addDays(30)->format('Y-m-d'),
             'total' => 1000.00,
             'status' => 'draft',
+            'currency' => 'EUR',
         ];
 
         /* act */
@@ -289,10 +323,17 @@ class QuoteServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Quote::class, $result);
         $this->assertDatabaseHas('quotes', [
             'number' => 'QTE-NEW-001',
             'total' => 1000.00,
+            'status' => 'draft',
+            'currency' => 'EUR',
         ]);
+        // Verify the returned object matches what was created
+        $this->assertEquals('QTE-NEW-001', $result->number);
+        $this->assertEquals(1000.00, $result->total);
+        $this->assertNotNull($result->id);
     }
 
     /** @test */
@@ -303,6 +344,8 @@ class QuoteServiceTest extends TestCase
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
             'total' => 1000.00,
+            'status' => 'draft',
+            'notes' => 'Original notes',
         ]);
 
         $updateData = [
@@ -315,9 +358,14 @@ class QuoteServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Quote::class, $result);
         $quote->refresh();
         $this->assertEquals(1500.00, $quote->total);
         $this->assertEquals('Updated notes', $quote->notes);
+        // Original status should remain unchanged if not in update data
+        $this->assertEquals('draft', $quote->status);
+        // ID should remain the same
+        $this->assertEquals($quote->id, $result->id);
     }
 
     /** @test */
@@ -327,7 +375,9 @@ class QuoteServiceTest extends TestCase
         $partner = Partner::factory()->create();
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
+            'number' => 'QTE-DELETE-001',
         ]);
+        $quoteId = $quote->id;
 
         /* act */
         $result = $this->quoteService->deleteQuote($quote->id);
@@ -335,8 +385,12 @@ class QuoteServiceTest extends TestCase
         /* assert */
         $this->assertTrue($result);
         $this->assertSoftDeleted('quotes', [
-            'id' => $quote->id,
+            'id' => $quoteId,
         ]);
+        // Verify the quote can't be found with standard queries
+        $this->assertNull(Quote::find($quoteId));
+        // But exists with trashed
+        $this->assertNotNull(Quote::withTrashed()->find($quoteId));
     }
 
     /** @test */
@@ -348,5 +402,7 @@ class QuoteServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // Should follow a pattern (e.g., QTE-XXXX or similar)
+        $this->assertMatchesRegularExpression('/[A-Z0-9-]+/', $result);
     }
 }

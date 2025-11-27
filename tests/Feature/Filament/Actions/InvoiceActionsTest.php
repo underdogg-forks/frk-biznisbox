@@ -30,6 +30,7 @@ class InvoiceActionsTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'INV-001',
+            'status' => 'draft',
         ]);
 
         /* act */
@@ -39,12 +40,20 @@ class InvoiceActionsTest extends TestCase
 
         /* assert */
         $component->assertSuccessful();
+        $component->assertHasNoActionErrors();
+        $component->assertNotified();
+        
+        // Verify invoice is still in database
         $this->assertDatabaseHas('invoices', [
             'id' => $invoice->id,
+            'number' => 'INV-001',
         ]);
+        
         // Share key should be generated
         $invoice->refresh();
         $this->assertNotNull($invoice->share_key);
+        $this->assertIsString($invoice->share_key);
+        $this->assertGreaterThan(20, strlen($invoice->share_key));
     }
 
     /** @test */
@@ -54,7 +63,16 @@ class InvoiceActionsTest extends TestCase
         $partner = Partner::factory()->create();
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
+            'customer_id' => $partner->id,
             'number' => 'INV-002',
+            'status' => 'draft',
+        ]);
+        
+        // Create a primary contact to receive notification
+        \App\Models\PartnerContact::factory()->create([
+            'partner_id' => $partner->id,
+            'email' => 'customer@example.com',
+            'is_primary' => true,
         ]);
 
         /* act */
@@ -64,6 +82,12 @@ class InvoiceActionsTest extends TestCase
 
         /* assert */
         $component->assertSuccessful();
+        $component->assertHasNoActionErrors();
+        $component->assertNotified();
+        
+        // Verify invoice status may have changed to 'sent'
+        $invoice->refresh();
+        $this->assertContains($invoice->status, ['draft', 'sent']);
     }
 
     /** @test */
@@ -73,8 +97,11 @@ class InvoiceActionsTest extends TestCase
         $partner = Partner::factory()->create();
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
+            'customer_id' => $partner->id,
             'number' => 'INV-003',
             'total' => 1000.00,
+            'status' => 'unpaid',
+            'currency' => 'USD',
         ]);
 
         $paymentData = [
@@ -89,10 +116,19 @@ class InvoiceActionsTest extends TestCase
 
         /* assert */
         $component->assertSuccessful();
+        $component->assertHasNoActionErrors();
+        $component->assertNotified();
+        
+        // Verify transaction was created
         $this->assertDatabaseHas('transactions', [
             'invoice_id' => $invoice->id,
             'amount' => 500.00,
+            'type' => 'income',
         ]);
+        
+        // Verify invoice status updated to partial
+        $invoice->refresh();
+        $this->assertEquals('partial', $invoice->status);
     }
 
     /** @test */
@@ -103,6 +139,8 @@ class InvoiceActionsTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'INV-004',
+            'total' => 2500.00,
+            'currency' => 'EUR',
         ]);
 
         /* act */
@@ -112,5 +150,12 @@ class InvoiceActionsTest extends TestCase
 
         /* assert */
         $component->assertSuccessful();
+        $component->assertHasNoActionErrors();
+        
+        // Verify invoice still exists
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice->id,
+            'number' => 'INV-004',
+        ]);
     }
 }

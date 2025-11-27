@@ -63,6 +63,8 @@ class InvoiceServiceTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'INV-TEST-001',
+            'total' => 1500.00,
+            'currency' => 'USD',
         ]);
 
         /* act */
@@ -70,6 +72,13 @@ class InvoiceServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'ViewInvoice',
+            'subject_id' => $invoice->id,
+            'subject_type' => 'App\Models\Invoice',
+        ]);
     }
 
     /** @test */
@@ -80,6 +89,7 @@ class InvoiceServiceTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'INV-TEST-002',
+            'total' => 2500.00,
         ]);
 
         /* act */
@@ -87,6 +97,13 @@ class InvoiceServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created for download
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'DownloadInvoice',
+            'subject_id' => $invoice->id,
+            'subject_type' => 'App\Models\Invoice',
+        ]);
     }
 
     /** @test */
@@ -97,6 +114,7 @@ class InvoiceServiceTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'INV-TEST-003',
+            'total' => 3500.00,
         ]);
 
         /* act */
@@ -105,6 +123,10 @@ class InvoiceServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // PDF output should start with PDF header
+        $this->assertStringStartsWith('%PDF', $result);
+        // Should contain invoice number
+        $this->assertStringContainsString('INV-TEST-003', $result);
     }
 
     /** @test */
@@ -281,11 +303,13 @@ class InvoiceServiceTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'customer_id' => $partner->id,
+            'total' => 3000.00,
         ]);
 
         Transaction::factory()->count(3)->create([
             'invoice_id' => $invoice->id,
             'type' => 'income',
+            'amount' => 1000.00,
         ]);
 
         /* act */
@@ -293,6 +317,12 @@ class InvoiceServiceTest extends TestCase
 
         /* assert */
         $this->assertCount(3, $payments);
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $payments);
+        // Verify all payments are for this invoice
+        $payments->each(function ($payment) use ($invoice) {
+            $this->assertEquals($invoice->id, $payment->invoice_id);
+            $this->assertEquals('income', $payment->type);
+        });
     }
 
     /** @test */
@@ -310,6 +340,11 @@ class InvoiceServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertCount(5, $result);
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $result);
+        // Verify all returned items are Invoice instances
+        $result->each(function ($invoice) {
+            $this->assertInstanceOf(Invoice::class, $invoice);
+        });
     }
 
     /** @test */
@@ -320,6 +355,8 @@ class InvoiceServiceTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'INV-123',
+            'total' => 5000.00,
+            'currency' => 'EUR',
         ]);
 
         /* act */
@@ -327,7 +364,11 @@ class InvoiceServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Invoice::class, $result);
         $this->assertEquals('INV-123', $result->number);
+        $this->assertEquals(5000.00, $result->total);
+        $this->assertEquals('EUR', $result->currency);
+        $this->assertEquals($invoice->id, $result->id);
     }
 
     /** @test */
@@ -353,6 +394,7 @@ class InvoiceServiceTest extends TestCase
             'due_date' => now()->addDays(30)->format('Y-m-d'),
             'total' => 1000.00,
             'status' => 'draft',
+            'currency' => 'USD',
         ];
 
         /* act */
@@ -360,10 +402,17 @@ class InvoiceServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Invoice::class, $result);
         $this->assertDatabaseHas('invoices', [
             'number' => 'INV-NEW-001',
             'total' => 1000.00,
+            'status' => 'draft',
+            'currency' => 'USD',
         ]);
+        // Verify the returned object matches what was created
+        $this->assertEquals('INV-NEW-001', $result->number);
+        $this->assertEquals(1000.00, $result->total);
+        $this->assertNotNull($result->id);
     }
 
     /** @test */
@@ -374,6 +423,8 @@ class InvoiceServiceTest extends TestCase
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
             'total' => 1000.00,
+            'status' => 'draft',
+            'notes' => 'Original notes',
         ]);
 
         $updateData = [
@@ -386,9 +437,14 @@ class InvoiceServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Invoice::class, $result);
         $invoice->refresh();
         $this->assertEquals(1500.00, $invoice->total);
         $this->assertEquals('Updated notes', $invoice->notes);
+        // Original status should remain unchanged if not in update data
+        $this->assertEquals('draft', $invoice->status);
+        // ID should remain the same
+        $this->assertEquals($invoice->id, $result->id);
     }
 
     /** @test */
@@ -398,7 +454,9 @@ class InvoiceServiceTest extends TestCase
         $partner = Partner::factory()->create();
         $invoice = Invoice::factory()->create([
             'partner_id' => $partner->id,
+            'number' => 'INV-DELETE-001',
         ]);
+        $invoiceId = $invoice->id;
 
         /* act */
         $result = $this->invoiceService->deleteInvoice($invoice->id);
@@ -406,8 +464,12 @@ class InvoiceServiceTest extends TestCase
         /* assert */
         $this->assertTrue($result);
         $this->assertSoftDeleted('invoices', [
-            'id' => $invoice->id,
+            'id' => $invoiceId,
         ]);
+        // Verify the invoice can't be found with standard queries
+        $this->assertNull(Invoice::find($invoiceId));
+        // But exists with trashed
+        $this->assertNotNull(Invoice::withTrashed()->find($invoiceId));
     }
 
     /** @test */
@@ -419,5 +481,7 @@ class InvoiceServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // Should follow a pattern (e.g., INV-XXXX or similar)
+        $this->assertMatchesRegularExpression('/[A-Z0-9-]+/', $result);
     }
 }

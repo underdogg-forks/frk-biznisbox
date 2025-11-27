@@ -30,6 +30,8 @@ class QuoteActionsTest extends TestCase
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'QTE-001',
+            'total' => 3500.00,
+            'status' => 'draft',
         ]);
 
         /* act */
@@ -39,12 +41,20 @@ class QuoteActionsTest extends TestCase
 
         /* assert */
         $component->assertSuccessful();
+        $component->assertHasNoActionErrors();
+        $component->assertNotified();
+        
+        // Verify quote is still in database
         $this->assertDatabaseHas('quotes', [
             'id' => $quote->id,
+            'number' => 'QTE-001',
         ]);
+        
         // Share key should be generated
         $quote->refresh();
         $this->assertNotNull($quote->share_key);
+        $this->assertIsString($quote->share_key);
+        $this->assertGreaterThan(20, strlen($quote->share_key));
     }
 
     /** @test */
@@ -54,7 +64,16 @@ class QuoteActionsTest extends TestCase
         $partner = Partner::factory()->create();
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
+            'customer_id' => $partner->id,
             'number' => 'QTE-002',
+            'status' => 'draft',
+        ]);
+        
+        // Create a primary contact to receive notification
+        \App\Models\PartnerContact::factory()->create([
+            'partner_id' => $partner->id,
+            'email' => 'customer@example.com',
+            'is_primary' => true,
         ]);
 
         /* act */
@@ -64,6 +83,12 @@ class QuoteActionsTest extends TestCase
 
         /* assert */
         $component->assertSuccessful();
+        $component->assertHasNoActionErrors();
+        $component->assertNotified();
+        
+        // Verify quote status may have changed to 'sent'
+        $quote->refresh();
+        $this->assertContains($quote->status, ['draft', 'sent']);
     }
 
     /** @test */
@@ -73,8 +98,11 @@ class QuoteActionsTest extends TestCase
         $partner = Partner::factory()->create();
         $quote = Quote::factory()->create([
             'partner_id' => $partner->id,
+            'customer_id' => $partner->id,
             'number' => 'QTE-003',
             'status' => 'sent',
+            'total' => 5000.00,
+            'currency' => 'USD',
         ]);
 
         /* act */
@@ -84,9 +112,18 @@ class QuoteActionsTest extends TestCase
 
         /* assert */
         $component->assertSuccessful();
+        $component->assertHasNoActionErrors();
+        $component->assertNotified();
+        
         // An invoice should be created from the quote
         $this->assertDatabaseHas('invoices', [
             'customer_id' => $quote->customer_id,
         ]);
+        
+        // Verify the created invoice has matching details
+        $invoice = \App\Models\Invoice::where('customer_id', $quote->customer_id)->latest()->first();
+        $this->assertNotNull($invoice);
+        $this->assertEquals($quote->total, $invoice->total);
+        $this->assertEquals($quote->currency, $invoice->currency);
     }
 }

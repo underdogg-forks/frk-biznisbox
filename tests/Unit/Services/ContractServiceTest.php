@@ -60,6 +60,8 @@ class ContractServiceTest extends TestCase
         $contract = Contract::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'CNT-TEST-001',
+            'total' => 15000.00,
+            'currency' => 'EUR',
         ]);
 
         /* act */
@@ -67,6 +69,13 @@ class ContractServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'ViewContract',
+            'subject_id' => $contract->id,
+            'subject_type' => 'App\Models\Contract',
+        ]);
     }
 
     /** @test */
@@ -77,6 +86,7 @@ class ContractServiceTest extends TestCase
         $contract = Contract::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'CNT-TEST-002',
+            'total' => 25000.00,
         ]);
 
         /* act */
@@ -84,6 +94,13 @@ class ContractServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created for download
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'DownloadContract',
+            'subject_id' => $contract->id,
+            'subject_type' => 'App\Models\Contract',
+        ]);
     }
 
     /** @test */
@@ -94,6 +111,7 @@ class ContractServiceTest extends TestCase
         $contract = Contract::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'CNT-TEST-003',
+            'total' => 35000.00,
         ]);
 
         /* act */
@@ -102,6 +120,10 @@ class ContractServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // PDF output should start with PDF header
+        $this->assertStringStartsWith('%PDF', $result);
+        // Should contain contract number
+        $this->assertStringContainsString('CNT-TEST-003', $result);
     }
 
     /** @test */
@@ -119,6 +141,11 @@ class ContractServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertCount(5, $result);
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $result);
+        // Verify all returned items are Contract instances
+        $result->each(function ($contract) {
+            $this->assertInstanceOf(Contract::class, $contract);
+        });
     }
 
     /** @test */
@@ -129,6 +156,8 @@ class ContractServiceTest extends TestCase
         $contract = Contract::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'CNT-123',
+            'total' => 18000.00,
+            'status' => 'active',
         ]);
 
         /* act */
@@ -136,7 +165,11 @@ class ContractServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Contract::class, $result);
         $this->assertEquals('CNT-123', $result->number);
+        $this->assertEquals(18000.00, $result->total);
+        $this->assertEquals('active', $result->status);
+        $this->assertEquals($contract->id, $result->id);
     }
 
     /** @test */
@@ -162,6 +195,7 @@ class ContractServiceTest extends TestCase
             'end_date' => now()->addMonths(12)->format('Y-m-d'),
             'total' => 12000.00,
             'status' => 'draft',
+            'currency' => 'GBP',
         ];
 
         /* act */
@@ -169,10 +203,17 @@ class ContractServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Contract::class, $result);
         $this->assertDatabaseHas('contracts', [
             'number' => 'CNT-NEW-001',
             'total' => 12000.00,
+            'status' => 'draft',
+            'currency' => 'GBP',
         ]);
+        // Verify the returned object matches what was created
+        $this->assertEquals('CNT-NEW-001', $result->number);
+        $this->assertEquals(12000.00, $result->total);
+        $this->assertNotNull($result->id);
     }
 
     /** @test */
@@ -183,6 +224,8 @@ class ContractServiceTest extends TestCase
         $contract = Contract::factory()->create([
             'partner_id' => $partner->id,
             'total' => 12000.00,
+            'status' => 'draft',
+            'notes' => 'Original notes',
         ]);
 
         $updateData = [
@@ -195,9 +238,14 @@ class ContractServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Contract::class, $result);
         $contract->refresh();
         $this->assertEquals(15000.00, $contract->total);
         $this->assertEquals('Updated notes', $contract->notes);
+        // Original status should remain unchanged if not in update data
+        $this->assertEquals('draft', $contract->status);
+        // ID should remain the same
+        $this->assertEquals($contract->id, $result->id);
     }
 
     /** @test */
@@ -207,7 +255,9 @@ class ContractServiceTest extends TestCase
         $partner = Partner::factory()->create();
         $contract = Contract::factory()->create([
             'partner_id' => $partner->id,
+            'number' => 'CNT-DELETE-001',
         ]);
+        $contractId = $contract->id;
 
         /* act */
         $result = $this->contractService->deleteContract($contract->id);
@@ -215,8 +265,12 @@ class ContractServiceTest extends TestCase
         /* assert */
         $this->assertTrue($result);
         $this->assertSoftDeleted('contracts', [
-            'id' => $contract->id,
+            'id' => $contractId,
         ]);
+        // Verify the contract can't be found with standard queries
+        $this->assertNull(Contract::find($contractId));
+        // But exists with trashed
+        $this->assertNotNull(Contract::withTrashed()->find($contractId));
     }
 
     /** @test */
@@ -228,5 +282,7 @@ class ContractServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // Should follow a pattern (e.g., CNT-XXXX or similar)
+        $this->assertMatchesRegularExpression('/[A-Z0-9-]+/', $result);
     }
 }

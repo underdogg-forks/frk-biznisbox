@@ -31,6 +31,8 @@ class BillServiceTest extends TestCase
         $bill = Bill::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'BILL-TEST-001',
+            'total' => 1800.00,
+            'currency' => 'GBP',
         ]);
 
         /* act */
@@ -38,6 +40,13 @@ class BillServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'ViewBill',
+            'subject_id' => $bill->id,
+            'subject_type' => 'App\Models\Bill',
+        ]);
     }
 
     /** @test */
@@ -48,6 +57,7 @@ class BillServiceTest extends TestCase
         $bill = Bill::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'BILL-TEST-002',
+            'total' => 2800.00,
         ]);
 
         /* act */
@@ -55,6 +65,13 @@ class BillServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(\Illuminate\Http\Response::class, $result);
+        // Verify activity log was created for download
+        $this->assertDatabaseHas('activity_logs', [
+            'event' => 'DownloadBill',
+            'subject_id' => $bill->id,
+            'subject_type' => 'App\Models\Bill',
+        ]);
     }
 
     /** @test */
@@ -65,6 +82,7 @@ class BillServiceTest extends TestCase
         $bill = Bill::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'BILL-TEST-003',
+            'total' => 3800.00,
         ]);
 
         /* act */
@@ -73,6 +91,10 @@ class BillServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // PDF output should start with PDF header
+        $this->assertStringStartsWith('%PDF', $result);
+        // Should contain bill number
+        $this->assertStringContainsString('BILL-TEST-003', $result);
     }
 
     /** @test */
@@ -90,6 +112,11 @@ class BillServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertCount(5, $result);
+        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Collection::class, $result);
+        // Verify all returned items are Bill instances
+        $result->each(function ($bill) {
+            $this->assertInstanceOf(Bill::class, $bill);
+        });
     }
 
     /** @test */
@@ -100,6 +127,8 @@ class BillServiceTest extends TestCase
         $bill = Bill::factory()->create([
             'partner_id' => $partner->id,
             'number' => 'BILL-123',
+            'total' => 4500.00,
+            'status' => 'unpaid',
         ]);
 
         /* act */
@@ -107,7 +136,11 @@ class BillServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Bill::class, $result);
         $this->assertEquals('BILL-123', $result->number);
+        $this->assertEquals(4500.00, $result->total);
+        $this->assertEquals('unpaid', $result->status);
+        $this->assertEquals($bill->id, $result->id);
     }
 
     /** @test */
@@ -133,6 +166,7 @@ class BillServiceTest extends TestCase
             'due_date' => now()->addDays(30)->format('Y-m-d'),
             'total' => 1000.00,
             'status' => 'draft',
+            'currency' => 'USD',
         ];
 
         /* act */
@@ -140,10 +174,17 @@ class BillServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Bill::class, $result);
         $this->assertDatabaseHas('bills', [
             'number' => 'BILL-NEW-001',
             'total' => 1000.00,
+            'status' => 'draft',
+            'currency' => 'USD',
         ]);
+        // Verify the returned object matches what was created
+        $this->assertEquals('BILL-NEW-001', $result->number);
+        $this->assertEquals(1000.00, $result->total);
+        $this->assertNotNull($result->id);
     }
 
     /** @test */
@@ -154,6 +195,8 @@ class BillServiceTest extends TestCase
         $bill = Bill::factory()->create([
             'partner_id' => $partner->id,
             'total' => 1000.00,
+            'status' => 'draft',
+            'notes' => 'Original notes',
         ]);
 
         $updateData = [
@@ -166,9 +209,14 @@ class BillServiceTest extends TestCase
 
         /* assert */
         $this->assertNotNull($result);
+        $this->assertInstanceOf(Bill::class, $result);
         $bill->refresh();
         $this->assertEquals(1500.00, $bill->total);
         $this->assertEquals('Updated notes', $bill->notes);
+        // Original status should remain unchanged if not in update data
+        $this->assertEquals('draft', $bill->status);
+        // ID should remain the same
+        $this->assertEquals($bill->id, $result->id);
     }
 
     /** @test */
@@ -178,15 +226,21 @@ class BillServiceTest extends TestCase
         $partner = Partner::factory()->create();
         $bill = Bill::factory()->create([
             'partner_id' => $partner->id,
+            'number' => 'BILL-DELETE-001',
         ]);
+        $billId = $bill->id;
 
         /* act */
         $this->billService->deleteBill($bill->id);
 
         /* assert */
         $this->assertSoftDeleted('bills', [
-            'id' => $bill->id,
+            'id' => $billId,
         ]);
+        // Verify the bill can't be found with standard queries
+        $this->assertNull(Bill::find($billId));
+        // But exists with trashed
+        $this->assertNotNull(Bill::withTrashed()->find($billId));
     }
 
     /** @test */
@@ -198,5 +252,7 @@ class BillServiceTest extends TestCase
         /* assert */
         $this->assertNotNull($result);
         $this->assertIsString($result);
+        // Should follow a pattern (e.g., BILL-XXXX or similar)
+        $this->assertMatchesRegularExpression('/[A-Z0-9-]+/', $result);
     }
 }
