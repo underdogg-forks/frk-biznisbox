@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SupportTickets\Pages;
 
+use App\Filament\Resources\SupportTickets\Actions\ShareTicketAction;
 use App\Filament\Resources\SupportTickets\SupportTicketResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -15,6 +16,7 @@ class EditSupportTicket extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ShareTicketAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

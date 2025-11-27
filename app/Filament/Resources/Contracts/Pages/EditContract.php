@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Contracts\Pages;
 
+use App\Filament\Resources\Contracts\Actions\GenerateContractPdfAction;
+use App\Filament\Resources\Contracts\Actions\ShareContractAction;
 use App\Filament\Resources\Contracts\ContractResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -15,6 +17,8 @@ class EditContract extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ShareContractAction::make(),
+            GenerateContractPdfAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Quotes\Pages;
 
+use App\Filament\Resources\Quotes\Actions\ConvertQuoteToInvoiceAction;
+use App\Filament\Resources\Quotes\Actions\SendQuoteNotificationAction;
+use App\Filament\Resources\Quotes\Actions\ShareQuoteAction;
 use App\Filament\Resources\Quotes\QuoteResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -15,6 +18,9 @@ class EditQuote extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ConvertQuoteToInvoiceAction::make(),
+            ShareQuoteAction::make(),
+            SendQuoteNotificationAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

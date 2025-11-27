@@ -100,6 +100,7 @@ class InvoicesTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \App\Filament\Resources\Invoices\Actions\GenerateInvoicePdfAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
