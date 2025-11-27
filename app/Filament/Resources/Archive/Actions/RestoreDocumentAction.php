@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Archive\Actions;
 
 use App\Models\Archive;
+use App\Services\ArchiveService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -15,8 +16,19 @@ class RestoreDocumentAction
             ->icon('heroicon-o-arrow-uturn-left')
             ->requiresConfirmation()
             ->action(function (Archive $record) {
-                // TODO: Implement actual restore from ArchiveController@restoreDocument
-                // This is a placeholder action
+                $archiveService = app(ArchiveService::class);
+                
+                $result = $archiveService->restoreDocument($record->id);
+                
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Document could not be restored')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
                 
                 Notification::make()
                     ->title('Document Restored')

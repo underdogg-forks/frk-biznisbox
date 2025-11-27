@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Archive\Actions;
 
 use App\Models\Archive;
+use App\Services\ArchiveService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -18,8 +19,19 @@ class ForceDeleteDocumentAction
             ->modalHeading('Permanently Delete Document')
             ->modalDescription('Are you sure you want to permanently delete this document? This action cannot be undone.')
             ->action(function (Archive $record) {
-                // TODO: Implement actual force delete from ArchiveController@forceDeleteDocument
-                // This is a placeholder action
+                $archiveService = app(ArchiveService::class);
+                
+                $result = $archiveService->deleteDocumentPermanently($record->id);
+                
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Document could not be deleted permanently')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
                 
                 Notification::make()
                     ->title('Document Permanently Deleted')

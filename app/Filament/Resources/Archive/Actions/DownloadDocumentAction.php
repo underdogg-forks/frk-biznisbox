@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Archive\Actions;
 
 use App\Models\Archive;
+use App\Services\ArchiveService;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 
 class DownloadDocumentAction
 {
@@ -14,19 +14,9 @@ class DownloadDocumentAction
             ->label('Download')
             ->icon('heroicon-o-arrow-down-tray')
             ->action(function (Archive $record) {
-                // TODO: Implement actual download from ArchiveController@downloadDocument
-                // This is a placeholder action
+                $archiveService = app(ArchiveService::class);
                 
-                $downloadUrl = route('downloadDocument', ['id' => $record->id]);
-                
-                Notification::make()
-                    ->title('Downloading Document')
-                    ->body("Downloading {$record->name}")
-                    ->success()
-                    ->send();
-                
-                // In actual implementation, this would trigger file download
-                return redirect($downloadUrl);
+                return $archiveService->downloadDocument($record->id);
             });
     }
 }

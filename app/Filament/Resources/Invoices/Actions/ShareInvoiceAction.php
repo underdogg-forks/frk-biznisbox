@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Invoices\Actions;
 
 use App\Models\Invoice;
+use App\Services\InvoiceService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -14,10 +15,20 @@ class ShareInvoiceAction
             ->label('Share Invoice')
             ->icon('heroicon-o-share')
             ->action(function (Invoice $record) {
-                // TODO: Implement actual share functionality from InvoiceController@shareInvoice
-                // This is a placeholder action
+                $invoiceService = app(InvoiceService::class);
+                $result = $invoiceService->shareInvoice($record->id);
                 
-                $shareUrl = route('clientGetInvoice') . '?key=' . $record->share_key;
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Invoice could not be shared')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
+                
+                $shareUrl = route('clientGetInvoice') . '?key=' . $result['share_key'];
                 
                 Notification::make()
                     ->title('Invoice Share Link Generated')

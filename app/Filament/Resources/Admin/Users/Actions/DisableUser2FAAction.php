@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Admin\Users\Actions;
 
 use App\Models\User;
+use App\Services\Admin\UserService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -17,8 +18,19 @@ class DisableUser2FAAction
             ->modalHeading('Disable Two-Factor Authentication')
             ->modalDescription('Are you sure you want to disable 2FA for this user?')
             ->action(function (User $record) {
-                // TODO: Implement actual 2FA disable from Admin\UserController@disable2fa
-                // This is a placeholder action
+                $userService = app(UserService::class);
+                
+                $result = $userService->disable2fa($record->id);
+                
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('2FA could not be disabled')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
                 
                 Notification::make()
                     ->title('2FA Disabled')

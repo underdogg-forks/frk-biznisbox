@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Contracts\Actions;
 
 use App\Models\Contract;
+use App\Services\ContractService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -14,19 +15,19 @@ class GenerateContractPdfAction
             ->label('Generate PDF')
             ->icon('heroicon-o-document-arrow-down')
             ->action(function (Contract $record) {
-                // TODO: Implement actual PDF generation from ContractController@getContractPdf
-                // This is a placeholder action
+                $contractService = app(ContractService::class);
                 
-                $pdfUrl = route('getContractPdf', ['id' => $record->id]);
-                
-                Notification::make()
-                    ->title('PDF Generated')
-                    ->body('Opening contract PDF...')
-                    ->success()
-                    ->send();
-                
-                // In actual implementation, this would generate and download the PDF
-                return redirect($pdfUrl);
+                try {
+                    return response()->streamDownload(function () use ($contractService, $record) {
+                        echo $contractService->getContractPdf($record->id, 'attach');
+                    }, 'Contract ' . $record->number . '.pdf');
+                } catch (\Exception $e) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('PDF could not be generated: ' . $e->getMessage())
+                        ->danger()
+                        ->send();
+                }
             });
     }
 }

@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Admin\Settings\Actions;
 
+use App\Services\Admin\SettingService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
+use Illuminate\Http\Request;
 
 class UploadCompanyLogoAction
 {
@@ -14,7 +16,7 @@ class UploadCompanyLogoAction
             ->label('Upload Logo')
             ->icon('heroicon-o-photo')
             ->form([
-                FileUpload::make('logo')
+                FileUpload::make('company_logo')
                     ->label('Company Logo')
                     ->image()
                     ->required()
@@ -22,8 +24,22 @@ class UploadCompanyLogoAction
                     ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg']),
             ])
             ->action(function (array $data) {
-                // TODO: Implement actual logo upload from Admin\SettingController@setCompanyLogo
-                // This is a placeholder action
+                $settingService = app(SettingService::class);
+                
+                $request = new Request();
+                $request->files->set('company_logo', $data['company_logo']);
+                
+                $result = $settingService->setCompanyLogo($request);
+                
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Logo could not be uploaded')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
                 
                 Notification::make()
                     ->title('Logo Uploaded')

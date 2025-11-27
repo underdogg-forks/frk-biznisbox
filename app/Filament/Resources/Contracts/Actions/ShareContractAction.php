@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Contracts\Actions;
 
 use App\Models\Contract;
+use App\Services\ContractService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -14,10 +15,20 @@ class ShareContractAction
             ->label('Share Contract')
             ->icon('heroicon-o-share')
             ->action(function (Contract $record) {
-                // TODO: Implement actual share functionality from ContractController@shareContract
-                // This is a placeholder action
+                $contractService = app(ContractService::class);
+                $result = $contractService->shareContract($record->id, []);
                 
-                $shareUrl = route('clientGetContract') . '?key=' . $record->share_key;
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Contract could not be shared')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
+                
+                $shareUrl = route('clientGetContract') . '?key=' . $result['share_key'];
                 
                 Notification::make()
                     ->title('Contract Share Link Generated')

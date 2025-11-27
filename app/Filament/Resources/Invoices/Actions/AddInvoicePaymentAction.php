@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Invoices\Actions;
 
 use App\Models\Invoice;
+use App\Services\InvoiceService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 
@@ -21,26 +21,26 @@ class AddInvoicePaymentAction
                     ->label('Payment Amount')
                     ->numeric()
                     ->required()
-                    ->prefix('$'),
-                Select::make('payment_method')
-                    ->label('Payment Method')
-                    ->options([
-                        'cash' => 'Cash',
-                        'bank_transfer' => 'Bank Transfer',
-                        'credit_card' => 'Credit Card',
-                        'paypal' => 'PayPal',
-                        'stripe' => 'Stripe',
-                        'other' => 'Other',
-                    ])
-                    ->required(),
-                DatePicker::make('payment_date')
+                    ->prefix(fn (Invoice $record) => $record->currency ?? '$'),
+                DatePicker::make('date')
                     ->label('Payment Date')
                     ->default(now())
                     ->required(),
             ])
             ->action(function (Invoice $record, array $data) {
-                // TODO: Implement actual payment addition from InvoiceController@addInvoicePayment
-                // This is a placeholder action
+                $invoiceService = app(InvoiceService::class);
+                
+                $result = $invoiceService->addInvoicePayment($record->id, $data);
+                
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Payment could not be added')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
                 
                 Notification::make()
                     ->title('Payment Added')

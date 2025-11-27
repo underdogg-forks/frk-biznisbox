@@ -3,8 +3,8 @@
 namespace App\Filament\Resources\Archive\Actions;
 
 use App\Models\Archive;
+use App\Services\ArchiveService;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 
 class PreviewDocumentAction
 {
@@ -14,19 +14,9 @@ class PreviewDocumentAction
             ->label('Preview')
             ->icon('heroicon-o-eye')
             ->action(function (Archive $record) {
-                // TODO: Implement actual preview from ArchiveController@previewDocument
-                // This is a placeholder action
+                $archiveService = app(ArchiveService::class);
                 
-                $previewUrl = route('previewDocument', ['id' => $record->id]);
-                
-                Notification::make()
-                    ->title('Opening Preview')
-                    ->body("Opening preview for {$record->name}")
-                    ->success()
-                    ->send();
-                
-                // In actual implementation, this would open preview in modal or new tab
-                return redirect($previewUrl);
+                return $archiveService->previewDocument($record->id);
             });
     }
 }
