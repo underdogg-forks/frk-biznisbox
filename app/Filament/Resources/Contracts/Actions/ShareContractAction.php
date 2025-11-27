@@ -20,7 +20,7 @@ class ShareContractAction
             label: 'Share Contract',
             route: 'clientGetContract',
             documentType: 'contract',
-            getData: fn () => [[]]
+            getData: fn () => [] // ContractService::shareContract expects $data as second parameter
         );
     }
 }

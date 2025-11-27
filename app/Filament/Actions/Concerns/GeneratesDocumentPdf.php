@@ -30,7 +30,7 @@ trait GeneratesDocumentPdf
 
                 try {
                     return response()->streamDownload(
-                        fn () => print $service->$method($record->id, 'attach'),
+                        fn () => echo $service->$method($record->id, 'attach'),
                         ucfirst($documentType) . ' ' . $record->number . '.pdf'
                     );
                 } catch (\Exception $e) {

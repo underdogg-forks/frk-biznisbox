@@ -59,9 +59,6 @@ class PartnerService
 
     public function deletePartnerActivity($id)
     {
-        $partnerActivity = new PartnerActivity();
-        $partnerActivity = $partnerActivity->deletePartnerActivity($id);
-
-        return $partnerActivity;
+        return (new PartnerActivity())->deletePartnerActivity($id);
     }
 }
