@@ -2,41 +2,25 @@
 
 namespace App\Filament\Resources\Contracts\Actions;
 
-use App\Models\Contract;
+use App\Filament\Actions\Concerns\HandlesNotifications;
+use App\Filament\Actions\Concerns\SharesDocuments;
 use App\Services\ContractService;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 
 class ShareContractAction
 {
+    use HandlesNotifications;
+    use SharesDocuments;
+
     public static function make(): Action
     {
-        return Action::make('share')
-            ->label('Share Contract')
-            ->icon('heroicon-o-share')
-            ->action(function (Contract $record) {
-                $contractService = app(ContractService::class);
-                $result = $contractService->shareContract($record->id, []);
-                
-                if (!$result) {
-                    Notification::make()
-                        ->title('Error')
-                        ->body('Contract could not be shared')
-                        ->danger()
-                        ->send();
-                    
-                    return;
-                }
-                
-                $shareUrl = route('clientGetContract') . '?key=' . $result['share_key'];
-                
-                Notification::make()
-                    ->title('Contract Share Link Generated')
-                    ->body("Share this link: {$shareUrl}")
-                    ->success()
-                    ->send();
-                
-                return $shareUrl;
-            });
+        return static::makeShareAction(
+            serviceClass: ContractService::class,
+            method: 'shareContract',
+            label: 'Share Contract',
+            route: 'clientGetContract',
+            documentType: 'contract',
+            getData: fn () => [] // ContractService::shareContract expects $data as second parameter
+        );
     }
 }

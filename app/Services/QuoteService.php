@@ -2,166 +2,115 @@
 
 namespace App\Services;
 
-use App\Models\PartnerContact;
 use App\Models\Quote;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Mail;
+use App\Services\Concerns\GeneratesPdf;
+use App\Services\Concerns\SendsNotifications;
 
 class QuoteService
 {
-    private $quoteModel;
+    use GeneratesPdf;
+    use SendsNotifications;
 
-    public function __construct()
-    {
-        $this->quoteModel = new Quote();
+    public function __construct(
+        private readonly Quote $quoteModel
+    ) {
     }
 
     public function getQuotes()
     {
-        $quotes = $this->quoteModel->getQuotes();
-
-        return $quotes;
+        return $this->quoteModel->getQuotes();
     }
 
     public function getQuote($id)
     {
-        $quote = $this->quoteModel->getQuote($id);
-
-        return $quote;
+        return $this->quoteModel->getQuote($id);
     }
 
     public function createQuote($data)
     {
-        $quote = $this->quoteModel->createQuote($data);
-
-        return $quote;
+        return $this->quoteModel->createQuote($data);
     }
 
     public function updateQuote($id, $data)
     {
-        $quote = $this->quoteModel->updateQuote($id, $data);
-
-        return $quote;
+        return $this->quoteModel->updateQuote($id, $data);
     }
 
     public function deleteQuote($id)
     {
-        $quote = $this->quoteModel->deleteQuote($id);
-
-        return $quote;
+        return $this->quoteModel->deleteQuote($id);
     }
 
     public function getQuoteNumber()
     {
-        $quote = $this->quoteModel->getQuoteNumber();
-
-        return $quote;
+        return $this->quoteModel->getQuoteNumber();
     }
 
     public function shareQuote($id)
     {
-        $quote = $this->quoteModel->shareQuote($id);
-
-        return $quote;
+        return $this->quoteModel->shareQuote($id);
     }
 
     public function convertQuoteToInvoice($id)
     {
-        $quote = $this->quoteModel->convertQuoteToInvoice($id);
-
-        return $quote;
+        return $this->quoteModel->convertQuoteToInvoice($id);
     }
 
     /**
-     * Function to get quote pdf.
+     * Get quote PDF.
      *
-     * @param string $id   Quote id
-     * @param string $type Type of pdf (stream, download, attach)
+     * @param string $id   Quote ID
+     * @param string $type Type of PDF (stream, download, attach)
      *
-     * @return void Return quote pdf in stream, download or attach format
+     * @return mixed PDF output based on type
      */
     public function getQuotePdf($id, $type = 'stream')
     {
-        $quote    = $this->quoteModel->getQuote($id);
-        $settings = settings([
-            'company_name',
-            'company_address',
-            'company_city',
-            'company_zip',
-            'company_country',
-            'company_phone',
-            'company_email',
-            'company_vat',
-            'company_logo',
-            'show_barcode_on_documents',
-            'default_currency',
-        ]);
-        $pdf = PDF::loadView('pdfs.quote', compact('quote', 'settings'));
+        $quote = $this->quoteModel->getQuote($id);
 
-        if ($type == 'attach') {
-            return $pdf->output();
+        if (! $quote) {
+            abort(404, 'Quote not found');
         }
-        if ($type == 'download') {
-            createActivityLog('DownloadQuote', $quote->id, 'App\Models\Quote', 'Invoice');
 
-            return $pdf->download('Quote ' . $quote->number . '.pdf');
-        }
-        createActivityLog('ViewQuote', $quote->id, 'App\Models\Quote', 'Invoice');
-
-        return $pdf->stream('Quote ' . $quote->number . '.pdf');
+        return $this->generatePdf(
+            document: $quote,
+            view: 'pdfs.quote',
+            type: $type,
+            filename: 'Quote',
+            activity: $type === 'download' ? 'DownloadQuote' : 'ViewQuote',
+            model: Quote::class
+        );
     }
 
     /**
-     * Function to send quote notification.
+     * Send quote notification.
      *
-     * @param string             $quote_id Quote id
-     * @param object|string|null $contact  Contact email (optional)
+     * @param string      $quote_id Quote ID
+     * @param object|null $contact  Contact object (optional)
      *
-     * @return bool Return true if notification sent
+     * @return bool
      */
-    public function sendQuoteNotification($quote_id, $contact = null)
+    public function sendQuoteNotification($quote_id, $contact = null): bool
     {
-        $quote = new Quote();
-        $quote = $quote->getClientQuote($quote_id);
+        $quote = $this->quoteModel->getClientQuote($quote_id);
 
-        if ($contact != null) {
-            $url = url(
-                '/client/quote/'
-                    . $quote->id
-                    . '?key='
-                    . generateExternalKey('quote', $quote->id, 'system', null, $contact->email, 'email')
-                    . '&lang='
-                    . app()->getLocale()
-            );
+        $result = $this->sendDocumentNotification(
+            document: $quote,
+            documentType: 'quote',
+            mailClass: \App\Mail\Client\QuoteNotification::class,
+            contact: $contact
+        );
 
-            Mail::to($contact->email)->send(new \App\Mail\Client\QuoteNotification($quote, $url, $contact));
-
-            return true;
-        }
-        $contacts = PartnerContact::where('partner_id', $quote->customer_id)
-            ->orWhere('partner_id', $quote->payer_id)
-            ->where('is_primary', true)
-            ->whereNotNull('email')
-            ->get();
-
-        foreach ($contacts as $contact) {
-            $url = url(
-                '/client/quote/'
-                    . $quote->id
-                    . '?key='
-                    . generateExternalKey('quote', $quote->id, 'system', null, $contact->email, 'email')
-                    . '&lang='
-                    . app()->getLocale()
-            );
-
-            Mail::to($contact->email)->send(new \App\Mail\Client\QuoteNotification($quote, $url, $contact));
+        if (! $result) {
+            return false;
         }
 
-        if ($quote->status != 'accepted' && $quote->status != 'converted' && $quote->status != 'sent' && $quote->status != 'rejected') {
-            $quote->status = 'sent';
-            $quote->save();
-        }
-        createActivityLog('sendQuoteNotification', $quote->id, 'App\Models\Quote', 'Quote');
+        $this->updateStatusAfterNotification(
+            document: $quote,
+            excludeStatuses: ['accepted', 'converted', 'sent', 'rejected']
+        );
+
+        createActivityLog('SendQuoteNotification', $quote->id, Quote::class, 'Quote');
 
         return true;
     }

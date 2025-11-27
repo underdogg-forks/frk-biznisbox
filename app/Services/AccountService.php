@@ -6,45 +6,33 @@ use App\Models\Account;
 
 class AccountService
 {
-    private $accountModel;
-
-    public function __construct()
-    {
-        $this->accountModel = new Account();
+    public function __construct(
+        private readonly Account $accountModel
+    ) {
     }
 
     public function getAccounts()
     {
-        $accounts = $this->accountModel->getAccounts();
-
-        return $accounts;
+        return $this->accountModel->getAccounts();
     }
 
     public function getAccount($id)
     {
-        $account = $this->accountModel->getAccount($id);
-
-        return $account;
+        return $this->accountModel->getAccount($id);
     }
 
     public function createAccount($data)
     {
-        $account = $this->accountModel->createAccount($data);
-
-        return $account;
+        return $this->accountModel->createAccount($data);
     }
 
     public function updateAccount($id, $data)
     {
-        $account = $this->accountModel->updateAccount($id, $data);
-
-        return $account;
+        return $this->accountModel->updateAccount($id, $data);
     }
 
     public function deleteAccount($id)
     {
-        $account = $this->accountModel->deleteAccount($id);
-
-        return $account;
+        return $this->accountModel->deleteAccount($id);
     }
 }

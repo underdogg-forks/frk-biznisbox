@@ -2,13 +2,15 @@
 
 namespace App\Filament\Resources\Quotes\Actions;
 
+use App\Filament\Actions\Concerns\HandlesNotifications;
 use App\Models\Quote;
 use App\Services\QuoteService;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 
 class ConvertQuoteToInvoiceAction
 {
+    use HandlesNotifications;
+
     public static function make(): Action
     {
         return Action::make('convertToInvoice')
@@ -17,25 +19,19 @@ class ConvertQuoteToInvoiceAction
             ->requiresConfirmation()
             ->action(function (Quote $record) {
                 $quoteService = app(QuoteService::class);
-                
-                $result = $quoteService->convertQuoteToInvoice($record->id);
-                
-                if (!$result) {
-                    Notification::make()
-                        ->title('Error')
-                        ->body('Quote could not be converted to invoice')
-                        ->danger()
-                        ->send();
-                    
+                $result       = $quoteService->convertQuoteToInvoice($record->id);
+
+                if (! $result) {
+                    static::notifyError('Error', 'Quote could not be converted to invoice');
+
                     return;
                 }
-                
-                Notification::make()
-                    ->title('Quote Converted')
-                    ->body("Quote {$record->number} has been converted to an invoice")
-                    ->success()
-                    ->send();
-                
+
+                static::notifySuccess(
+                    'Quote Converted',
+                    "Quote {$record->number} has been converted to an invoice"
+                );
+
                 return $result;
             });
     }

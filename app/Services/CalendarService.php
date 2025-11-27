@@ -6,48 +6,35 @@ use App\Models\CalendarEvent;
 
 class CalendarService
 {
-    private $calendarEvent;
-
-    public function __construct()
-    {
-        $this->calendarEvent = new CalendarEvent();
+    public function __construct(
+        private readonly CalendarEvent $calendarEvent
+    ) {
     }
 
     public function getEvents($user, $start, $end)
     {
-        if ($user == null) {
-            $user = auth()->id();
-        }
-        $events = $this->calendarEvent->getEventsByUser($user, $start, $end);
+        $user = $user ?? auth()->id();
 
-        return $events;
+        return $this->calendarEvent->getEventsByUser($user, $start, $end);
     }
 
     public function createEvent($data)
     {
-        $event = $this->calendarEvent->createEvent($data);
-
-        return $event;
+        return $this->calendarEvent->createEvent($data);
     }
 
     public function updateEvent($id, $data)
     {
-        $event = $this->calendarEvent->updateEvent($id, $data);
-
-        return $event;
+        return $this->calendarEvent->updateEvent($id, $data);
     }
 
     public function deleteEvent($id)
     {
-        $event = $this->calendarEvent->deleteEvent($id);
-
-        return $event;
+        return $this->calendarEvent->deleteEvent($id);
     }
 
     public function getEvent($id)
     {
-        $event = $this->calendarEvent->getEvent($id);
-
-        return $event;
+        return $this->calendarEvent->getEvent($id);
     }
 }

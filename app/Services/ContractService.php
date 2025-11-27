@@ -3,94 +3,75 @@
 namespace App\Services;
 
 use App\Models\Contract;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\Concerns\GeneratesPdf;
 
 class ContractService
 {
-    private $contractModel;
+    use GeneratesPdf;
 
-    public function __construct()
-    {
-        $this->contractModel = new Contract();
+    public function __construct(
+        private readonly Contract $contractModel
+    ) {
     }
 
     public function getContracts()
     {
-        $contracts = $this->contractModel->getContracts();
-
-        return $contracts;
+        return $this->contractModel->getContracts();
     }
 
     public function getContract($id)
     {
-        $contract = $this->contractModel->getContract($id);
-
-        return $contract;
+        return $this->contractModel->getContract($id);
     }
 
     public function createContract($data)
     {
-        $contract = $this->contractModel->createContract($data);
-
-        return $contract;
+        return $this->contractModel->createContract($data);
     }
 
     public function updateContract($id, $data)
     {
-        $contract = $this->contractModel->updateContract($id, $data);
-
-        return $contract;
+        return $this->contractModel->updateContract($id, $data);
     }
 
     public function deleteContract($id)
     {
-        $contract = $this->contractModel->deleteContract($id);
-
-        return $contract;
+        return $this->contractModel->deleteContract($id);
     }
 
     public function getContractNumber()
     {
-        $contract = $this->contractModel->getContractNumber();
-
-        return $contract;
+        return $this->contractModel->getContractNumber();
     }
 
+    /**
+     * Get contract PDF.
+     *
+     * @param string $id   Contract ID
+     * @param string $type Type of PDF (stream, download, attach)
+     *
+     * @return mixed PDF output based on type
+     */
     public function getContractPdf($id, $type = 'stream')
     {
         $contract = $this->getContract($id);
-        $settings = settings([
-            'company_name',
-            'company_address',
-            'company_city',
-            'company_zip',
-            'company_country',
-            'company_phone',
-            'company_email',
-            'company_vat',
-            'company_logo',
-            'show_barcode_on_documents',
-            'default_currency',
-        ]);
-        $pdf = PDF::loadView('pdfs.contract', compact('contract', 'settings'));
 
-        if ($type == 'attach') {
-            return $pdf->output();
+        if (! $contract) {
+            abort(404, 'Contract not found');
         }
-        if ($type == 'download') {
-            createActivityLog('downloadContract', $contract->id, 'App\Models\Contract', 'Contract');
 
-            return $pdf->download('Contract ' . $contract->number . '.pdf');
-        }
-        createActivityLog('viewContract', $contract->id, 'App\Models\Contract', 'Contract');
-
-        return $pdf->stream('Contract ' . $contract->number . '.pdf');
+        return $this->generatePdf(
+            document: $contract,
+            view: 'pdfs.contract',
+            type: $type,
+            filename: 'Contract',
+            activity: $type === 'download' ? 'DownloadContract' : 'ViewContract',
+            model: Contract::class
+        );
     }
 
     public function shareContract($id, $data)
     {
-        $contract = $this->contractModel->shareContract($id, $data);
-
-        return $contract;
+        return $this->contractModel->shareContract($id, $data);
     }
 }
