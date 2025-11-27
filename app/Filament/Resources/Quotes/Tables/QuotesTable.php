@@ -100,6 +100,9 @@ class QuotesTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \App\Filament\Resources\Quotes\Actions\ShareQuoteAction::make(),
+                \App\Filament\Resources\Quotes\Actions\SendQuoteNotificationAction::make(),
+                \App\Filament\Resources\Quotes\Actions\ConvertQuoteToInvoiceAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

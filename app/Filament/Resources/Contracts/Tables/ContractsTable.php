@@ -75,6 +75,8 @@ class ContractsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \App\Filament\Resources\Contracts\Actions\ShareContractAction::make(),
+                \App\Filament\Resources\Contracts\Actions\GenerateContractPdfAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

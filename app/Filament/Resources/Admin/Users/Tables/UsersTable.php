@@ -65,6 +65,8 @@ class UsersTable
             ])
             ->recordActions([
                 EditAction::make(),
+                \App\Filament\Resources\Admin\Users\Actions\ResetUserPasswordAction::make(),
+                \App\Filament\Resources\Admin\Users\Actions\DisableUser2FAAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
