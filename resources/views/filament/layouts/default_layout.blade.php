@@ -1,8 +1,18 @@
-{{-- Converted Blade template for Laravel Filament --}}
-{{-- This template requires Filament components and controller data --}}
-{{-- Vue components are marked with TODO comments for conversion --}}
-
-<div id="toolbar">
-        {{-- TODO: Start component Filament equivalent --}}
-            {{-- TODO: Convert slot to Blade section --}}
-                {{-- TODO: Convert Button to Filament equivalent --}}
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ config('app.name') }}</title>
+    
+    @filamentStyles
+    @vite('resources/css/app.css')
+</head>
+<body>
+    {{ $slot }}
+    
+    @filamentScripts
+    @vite('resources/js/app.js')
+</body>
+</html>

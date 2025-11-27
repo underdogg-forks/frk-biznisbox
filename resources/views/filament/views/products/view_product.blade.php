@@ -1,11 +1,4 @@
-{{-- Converted Blade template for Laravel Filament --}}
-{{-- This template requires Filament components and controller data --}}
-{{-- Vue components are marked with TODO comments for conversion --}}
-
-{{-- TODO: Start DefaultLayout Filament equivalent --}}
-        {{-- TODO: Start LoadingScreen Filament equivalent --}}
-            {{-- TODO: Start PageHeader Filament equivalent --}}
-                {{-- TODO: Convert slot "actions" to Blade section --}}
-                    {{-- TODO: Start Button Filament equivalent --}}
-                    {{-- TODO: Convert Button to Filament equivalent --}}
-                    {{-- TODO: Convert Button to Filament equivalent --}}
+<x-filament-panels::page>
+    {{-- View Product Page --}}
+    {{-- Content managed by Filament Resource --}}
+</x-filament-panels::page>

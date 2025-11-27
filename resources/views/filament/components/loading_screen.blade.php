@@ -1,8 +1,7 @@
-{{-- Converted Blade template for Laravel Filament --}}
-{{-- This template requires Filament components and controller data --}}
-{{-- Vue components are marked with TODO comments for conversion --}}
+@props([
+    'class' => '',
+])
 
-{{-- TODO: Start component Filament equivalent --}}
-        {{-- TODO: Convert component to Filament equivalent --}}
-        <slot></slot>
-    </BlockUI>
+<div {{ $attributes->merge(['class' => $class]) }}>
+    {{ $slot }}
+</div>

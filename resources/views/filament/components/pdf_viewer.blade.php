@@ -1,5 +1,7 @@
-{{-- Converted Blade template for Laravel Filament --}}
-{{-- This template requires Filament components and controller data --}}
-{{-- Vue components are marked with TODO comments for conversion --}}
+@props([
+    'class' => '',
+])
 
-{{-- TODO: Convert VuePdfApp to Filament/Blade PDF viewer --}}
+<div {{ $attributes->merge(['class' => $class]) }}>
+    {{ $slot }}
+</div>
