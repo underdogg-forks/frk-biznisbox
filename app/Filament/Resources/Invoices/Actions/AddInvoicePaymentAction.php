@@ -2,15 +2,17 @@
 
 namespace App\Filament\Resources\Invoices\Actions;
 
+use App\Filament\Actions\Concerns\HandlesNotifications;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
 
 class AddInvoicePaymentAction
 {
+    use HandlesNotifications;
+
     public static function make(): Action
     {
         return Action::make('addPayment')
@@ -29,24 +31,18 @@ class AddInvoicePaymentAction
             ])
             ->action(function (Invoice $record, array $data) {
                 $invoiceService = app(InvoiceService::class);
-                
-                $result = $invoiceService->addInvoicePayment($record->id, $data);
-                
-                if (!$result) {
-                    Notification::make()
-                        ->title('Error')
-                        ->body('Payment could not be added')
-                        ->danger()
-                        ->send();
-                    
+                $result         = $invoiceService->addInvoicePayment($record->id, $data);
+
+                if (! $result) {
+                    static::notifyError('Error', 'Payment could not be added');
+
                     return;
                 }
-                
-                Notification::make()
-                    ->title('Payment Added')
-                    ->body("Payment of {$data['amount']} added to invoice {$record->number}")
-                    ->success()
-                    ->send();
+
+                static::notifySuccess(
+                    'Payment Added',
+                    "Payment of {$data['amount']} added to invoice {$record->number}"
+                );
             });
     }
 }
