@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Admin\Settings\Actions;
 
+use App\Services\Admin\SettingService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -17,8 +18,19 @@ class RemoveCompanyLogoAction
             ->modalHeading('Remove Company Logo')
             ->modalDescription('Are you sure you want to remove the company logo?')
             ->action(function () {
-                // TODO: Implement actual logo removal from Admin\SettingController@removeCompanyLogo
-                // This is a placeholder action
+                $settingService = app(SettingService::class);
+                
+                $result = $settingService->removeCompanyLogo();
+                
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Logo could not be removed')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
                 
                 Notification::make()
                     ->title('Logo Removed')

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quotes\Actions;
 
 use App\Models\Quote;
+use App\Services\QuoteService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -14,10 +15,20 @@ class ShareQuoteAction
             ->label('Share Quote')
             ->icon('heroicon-o-share')
             ->action(function (Quote $record) {
-                // TODO: Implement actual share functionality from QuoteController@shareQuote
-                // This is a placeholder action
+                $quoteService = app(QuoteService::class);
+                $result = $quoteService->shareQuote($record->id);
                 
-                $shareUrl = route('clientGetQuote') . '?key=' . $record->share_key;
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Quote could not be shared')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
+                
+                $shareUrl = route('clientGetQuote') . '?key=' . $result['share_key'];
                 
                 Notification::make()
                     ->title('Quote Share Link Generated')

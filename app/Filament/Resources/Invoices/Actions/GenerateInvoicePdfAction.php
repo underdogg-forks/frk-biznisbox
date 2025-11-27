@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Invoices\Actions;
 
 use App\Models\Invoice;
+use App\Services\InvoiceService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -14,19 +15,19 @@ class GenerateInvoicePdfAction
             ->label('Generate PDF')
             ->icon('heroicon-o-document-arrow-down')
             ->action(function (Invoice $record) {
-                // TODO: Implement actual PDF generation from InvoiceController@getInvoicePdf
-                // This is a placeholder action
+                $invoiceService = app(InvoiceService::class);
                 
-                $pdfUrl = route('getInvoicePdf', ['id' => $record->id]);
-                
-                Notification::make()
-                    ->title('PDF Generated')
-                    ->body('Opening PDF...')
-                    ->success()
-                    ->send();
-                
-                // In actual implementation, this would generate and download the PDF
-                return redirect($pdfUrl);
+                try {
+                    return response()->streamDownload(function () use ($invoiceService, $record) {
+                        echo $invoiceService->getInvoicePdf($record->id, 'attach');
+                    }, 'Invoice ' . $record->number . '.pdf');
+                } catch (\Exception $e) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('PDF could not be generated: ' . $e->getMessage())
+                        ->danger()
+                        ->send();
+                }
             });
     }
 }

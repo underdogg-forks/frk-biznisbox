@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Admin\Settings\Actions;
 
+use App\Services\Admin\SettingService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -26,18 +27,16 @@ class PreviewNumberingAction
                         'product' => 'Product',
                         'partner' => 'Partner',
                     ]),
-                TextInput::make('prefix')
-                    ->label('Prefix')
-                    ->default('INV-'),
-                TextInput::make('suffix')
-                    ->label('Suffix')
-                    ->default(''),
+                TextInput::make('format')
+                    ->label('Number Format')
+                    ->required()
+                    ->default('{year}-{number}')
+                    ->helperText('Use {year}, {month}, {day}, {number} as placeholders'),
             ])
             ->action(function (array $data) {
-                // TODO: Implement actual preview from Admin\SettingController@generatePreviewNumber
-                // This is a placeholder action
+                $settingService = app(SettingService::class);
                 
-                $preview = "{$data['prefix']}2024-0001{$data['suffix']}";
+                $preview = $settingService->generatePreviewNumber($data['format'], $data['type']);
                 
                 Notification::make()
                     ->title('Number Preview')

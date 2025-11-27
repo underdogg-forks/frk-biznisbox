@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SupportTickets\Actions;
 
 use App\Models\SupportTicket;
+use App\Services\SupportTicketService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -14,10 +15,20 @@ class ShareTicketAction
             ->label('Share Ticket')
             ->icon('heroicon-o-share')
             ->action(function (SupportTicket $record) {
-                // TODO: Implement actual share functionality from SupportTicketController@shareTicket
-                // This is a placeholder action
+                $supportTicketService = app(SupportTicketService::class);
+                $result = $supportTicketService->shareTicket($record->id);
                 
-                $shareUrl = route('clientGetTicket') . '?key=' . $record->share_key;
+                if (!$result) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Ticket could not be shared')
+                        ->danger()
+                        ->send();
+                    
+                    return;
+                }
+                
+                $shareUrl = route('clientGetTicket') . '?key=' . $result['share_key'];
                 
                 Notification::make()
                     ->title('Ticket Share Link Generated')

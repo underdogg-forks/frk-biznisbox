@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Admin\Settings\Actions;
 
+use App\Services\Admin\CurrencyService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -16,14 +17,23 @@ class UpdateCurrencyRatesAction
             ->modalHeading('Update Currency Exchange Rates')
             ->modalDescription('This will fetch the latest exchange rates from the currency provider.')
             ->action(function () {
-                // TODO: Implement actual rate update from Admin\CurrencyController@liveUpdateCurrencyRate
-                // This is a placeholder action
+                $currencyService = app(CurrencyService::class);
                 
-                Notification::make()
-                    ->title('Currency Rates Updated')
-                    ->body('All currency exchange rates have been updated successfully')
-                    ->success()
-                    ->send();
+                try {
+                    $result = $currencyService->liveUpdateCurrencyRate();
+                    
+                    Notification::make()
+                        ->title('Currency Rates Updated')
+                        ->body('All currency exchange rates have been updated successfully')
+                        ->success()
+                        ->send();
+                } catch (\Exception $e) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Currency rates could not be updated: ' . $e->getMessage())
+                        ->danger()
+                        ->send();
+                }
             });
     }
 }
