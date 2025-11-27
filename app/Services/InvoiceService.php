@@ -64,6 +64,10 @@ class InvoiceService
     {
         $invoice = $this->getInvoice($id);
 
+        if (! $invoice) {
+            abort(404, 'Invoice not found');
+        }
+
         return $this->generatePdf(
             document: $invoice,
             view: 'pdfs.invoice',
@@ -127,19 +131,31 @@ class InvoiceService
             $total += $transaction->type === 'income' ? $transaction->amount : -$transaction->amount;
         }
 
+        // Use bccomp for safe monetary comparison (scale 2 for cents precision)
+        $comparison = bccomp((string) $total, (string) $invoice->total, 2);
+
         $invoice->status = match (true) {
-            $total == $invoice->total        => 'paid',
-            $total > 0 && $total < $invoice->total => 'partial',
-            $total > $invoice->total         => 'overpaid',
-            default                          => $invoice->status,
+            $comparison === 0                                      => 'paid',
+            $comparison > 0                                        => 'overpaid',
+            $total > 0 && bccomp((string) $total, (string) $invoice->total, 2) < 0 => 'partial',
+            default                                                => $invoice->status,
         };
 
         $invoice->save();
     }
 
+    /**
+     * Get invoice payments.
+     *
+     * @param string $invoice_id Invoice ID
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function getInvoicePayments($invoice_id)
     {
-        return Transaction::where('invoice_id', $invoice_id)->get();
+        $invoice = $this->invoiceModel->findOrFail($invoice_id);
+
+        return $invoice->transactions;
     }
 
     /**

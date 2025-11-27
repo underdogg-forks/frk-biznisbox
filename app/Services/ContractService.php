@@ -56,12 +56,16 @@ class ContractService
     {
         $contract = $this->getContract($id);
 
+        if (! $contract) {
+            abort(404, 'Contract not found');
+        }
+
         return $this->generatePdf(
             document: $contract,
             view: 'pdfs.contract',
             type: $type,
             filename: 'Contract',
-            activity: $type === 'download' ? 'downloadContract' : 'viewContract',
+            activity: $type === 'download' ? 'DownloadContract' : 'ViewContract',
             model: Contract::class
         );
     }

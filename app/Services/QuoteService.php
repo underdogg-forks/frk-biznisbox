@@ -68,6 +68,10 @@ class QuoteService
     {
         $quote = $this->quoteModel->getQuote($id);
 
+        if (! $quote) {
+            abort(404, 'Quote not found');
+        }
+
         return $this->generatePdf(
             document: $quote,
             view: 'pdfs.quote',
@@ -106,7 +110,7 @@ class QuoteService
             excludeStatuses: ['accepted', 'converted', 'sent', 'rejected']
         );
 
-        createActivityLog('sendQuoteNotification', $quote->id, Quote::class, 'Quote');
+        createActivityLog('SendQuoteNotification', $quote->id, Quote::class, 'Quote');
 
         return true;
     }

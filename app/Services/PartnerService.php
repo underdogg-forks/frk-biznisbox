@@ -8,7 +8,8 @@ use App\Models\PartnerActivity;
 class PartnerService
 {
     public function __construct(
-        private readonly Partner $partnerModel
+        private readonly Partner $partnerModel,
+        private readonly PartnerActivity $partnerActivityModel
     ) {
     }
 
@@ -49,16 +50,16 @@ class PartnerService
 
     public function createPartnerActivity($data)
     {
-        return (new PartnerActivity())->createPartnerActivity($data);
+        return $this->partnerActivityModel->createPartnerActivity($data);
     }
 
     public function updatePartnerActivity($id, $data)
     {
-        return (new PartnerActivity())->updatePartnerActivity($id, $data);
+        return $this->partnerActivityModel->updatePartnerActivity($id, $data);
     }
 
     public function deletePartnerActivity($id)
     {
-        return (new PartnerActivity())->deletePartnerActivity($id);
+        return $this->partnerActivityModel->deletePartnerActivity($id);
     }
 }

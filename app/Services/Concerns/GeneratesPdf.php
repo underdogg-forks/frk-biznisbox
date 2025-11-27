@@ -2,6 +2,7 @@
 
 namespace App\Services\Concerns;
 
+use App\Enums\PdfOutputType;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 trait GeneratesPdf
@@ -29,37 +30,45 @@ trait GeneratesPdf
     /**
      * Generate PDF for a document.
      *
-     * @param object $document Document model instance
-     * @param string $view     Blade view name for PDF
-     * @param string $type     Type of output (stream, download, attach)
-     * @param string $filename Base filename for the document
-     * @param string $activity Activity log action name
-     * @param string $model    Model class name for activity log
+     * @param object           $document Document model instance
+     * @param string           $view     Blade view name for PDF
+     * @param string|PdfOutputType $type     Type of output (attach, download, stream)
+     * @param string           $filename Base filename for the document
+     * @param string           $activity Activity log action name
+     * @param string           $model    Model class name for activity log
      *
      * @return mixed PDF output based on type
+     * @throws \InvalidArgumentException
      */
     protected function generatePdf(
         object $document,
         string $view,
-        string $type = 'stream',
+        string|PdfOutputType $type = 'stream',
         string $filename = 'Document',
         string $activity = 'ViewDocument',
         string $model = 'App\Models\Document'
     ) {
+        // Normalize string to enum if needed
+        if (is_string($type)) {
+            $type = PdfOutputType::tryFrom($type);
+            if ($type === null) {
+                throw new \InvalidArgumentException("Invalid PDF type. Must be 'attach', 'download', or 'stream'.");
+            }
+        }
+
         $settings = $this->getCompanySettings();
         $pdf      = PDF::loadView($view, compact('document', 'settings'));
 
-        if ($type === 'attach') {
+        if ($type === PdfOutputType::ATTACH) {
             return $pdf->output();
         }
 
-        if ($type === 'download') {
-            createActivityLog($activity, $document->id, $model, class_basename($model));
+        // Log activity for download and stream
+        createActivityLog($activity, $document->id, $model, class_basename($model));
 
+        if ($type === PdfOutputType::DOWNLOAD) {
             return $pdf->download($filename . ' ' . $document->number . '.pdf');
         }
-
-        createActivityLog($activity, $document->id, $model, class_basename($model));
 
         return $pdf->stream($filename . ' ' . $document->number . '.pdf');
     }
