@@ -223,4 +223,130 @@ class QuoteServiceTest extends TestCase
         $quote->refresh();
         $this->assertEquals('sent', $quote->status);
     }
+
+    /** @test */
+    public function it_can_get_all_quotes(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        Quote::factory()->count(5)->create([
+            'partner_id' => $partner->id,
+        ]);
+
+        /* act */
+        $result = $this->quoteService->getQuotes();
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertCount(5, $result);
+    }
+
+    /** @test */
+    public function it_can_get_single_quote(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $quote = Quote::factory()->create([
+            'partner_id' => $partner->id,
+            'number' => 'QTE-123',
+        ]);
+
+        /* act */
+        $result = $this->quoteService->getQuote($quote->id);
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertEquals('QTE-123', $result->number);
+    }
+
+    /** @test */
+    public function it_returns_null_when_getting_non_existent_quote(): void
+    {
+        /* act */
+        $result = $this->quoteService->getQuote(99999);
+
+        /* assert */
+        $this->assertNull($result);
+    }
+
+    /** @test */
+    public function it_can_create_quote(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $quoteData = [
+            'partner_id' => $partner->id,
+            'customer_id' => $partner->id,
+            'number' => 'QTE-NEW-001',
+            'date' => now()->format('Y-m-d'),
+            'valid_until' => now()->addDays(30)->format('Y-m-d'),
+            'total' => 1000.00,
+            'status' => 'draft',
+        ];
+
+        /* act */
+        $result = $this->quoteService->createQuote($quoteData);
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertDatabaseHas('quotes', [
+            'number' => 'QTE-NEW-001',
+            'total' => 1000.00,
+        ]);
+    }
+
+    /** @test */
+    public function it_can_update_quote(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $quote = Quote::factory()->create([
+            'partner_id' => $partner->id,
+            'total' => 1000.00,
+        ]);
+
+        $updateData = [
+            'total' => 1500.00,
+            'notes' => 'Updated notes',
+        ];
+
+        /* act */
+        $result = $this->quoteService->updateQuote($quote->id, $updateData);
+
+        /* assert */
+        $this->assertNotNull($result);
+        $quote->refresh();
+        $this->assertEquals(1500.00, $quote->total);
+        $this->assertEquals('Updated notes', $quote->notes);
+    }
+
+    /** @test */
+    public function it_can_delete_quote(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $quote = Quote::factory()->create([
+            'partner_id' => $partner->id,
+        ]);
+
+        /* act */
+        $result = $this->quoteService->deleteQuote($quote->id);
+
+        /* assert */
+        $this->assertTrue($result);
+        $this->assertSoftDeleted('quotes', [
+            'id' => $quote->id,
+        ]);
+    }
+
+    /** @test */
+    public function it_can_get_quote_number(): void
+    {
+        /* act */
+        $result = $this->quoteService->getQuoteNumber();
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertIsString($result);
+    }
 }

@@ -103,4 +103,130 @@ class ContractServiceTest extends TestCase
         $this->assertNotNull($result);
         $this->assertIsString($result);
     }
+
+    /** @test */
+    public function it_can_get_all_contracts(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        Contract::factory()->count(5)->create([
+            'partner_id' => $partner->id,
+        ]);
+
+        /* act */
+        $result = $this->contractService->getContracts();
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertCount(5, $result);
+    }
+
+    /** @test */
+    public function it_can_get_single_contract(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $contract = Contract::factory()->create([
+            'partner_id' => $partner->id,
+            'number' => 'CNT-123',
+        ]);
+
+        /* act */
+        $result = $this->contractService->getContract($contract->id);
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertEquals('CNT-123', $result->number);
+    }
+
+    /** @test */
+    public function it_returns_null_when_getting_non_existent_contract(): void
+    {
+        /* act */
+        $result = $this->contractService->getContract(99999);
+
+        /* assert */
+        $this->assertNull($result);
+    }
+
+    /** @test */
+    public function it_can_create_contract(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $contractData = [
+            'partner_id' => $partner->id,
+            'customer_id' => $partner->id,
+            'number' => 'CNT-NEW-001',
+            'start_date' => now()->format('Y-m-d'),
+            'end_date' => now()->addMonths(12)->format('Y-m-d'),
+            'total' => 12000.00,
+            'status' => 'draft',
+        ];
+
+        /* act */
+        $result = $this->contractService->createContract($contractData);
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertDatabaseHas('contracts', [
+            'number' => 'CNT-NEW-001',
+            'total' => 12000.00,
+        ]);
+    }
+
+    /** @test */
+    public function it_can_update_contract(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $contract = Contract::factory()->create([
+            'partner_id' => $partner->id,
+            'total' => 12000.00,
+        ]);
+
+        $updateData = [
+            'total' => 15000.00,
+            'notes' => 'Updated notes',
+        ];
+
+        /* act */
+        $result = $this->contractService->updateContract($contract->id, $updateData);
+
+        /* assert */
+        $this->assertNotNull($result);
+        $contract->refresh();
+        $this->assertEquals(15000.00, $contract->total);
+        $this->assertEquals('Updated notes', $contract->notes);
+    }
+
+    /** @test */
+    public function it_can_delete_contract(): void
+    {
+        /* arrange */
+        $partner = Partner::factory()->create();
+        $contract = Contract::factory()->create([
+            'partner_id' => $partner->id,
+        ]);
+
+        /* act */
+        $result = $this->contractService->deleteContract($contract->id);
+
+        /* assert */
+        $this->assertTrue($result);
+        $this->assertSoftDeleted('contracts', [
+            'id' => $contract->id,
+        ]);
+    }
+
+    /** @test */
+    public function it_can_get_contract_number(): void
+    {
+        /* act */
+        $result = $this->contractService->getContractNumber();
+
+        /* assert */
+        $this->assertNotNull($result);
+        $this->assertIsString($result);
+    }
 }
